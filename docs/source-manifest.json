@@ -1,0 +1,40 @@
+{
+  "documentDate": "2026-10-15",
+  "files": [
+    {
+      "file": "index.html",
+      "bytes": 514,
+      "sha256": "c56de147afb9f2e5938fe16e57cdca6812aae2c87739f698a0926684e60aa2b6"
+    },
+    {
+      "file": "app.js",
+      "bytes": 36122,
+      "sha256": "35a1c30d8a5494fd602a4558c01fc0a5787dde45ffc518086f01de919e5df92f"
+    },
+    {
+      "file": "portal.js",
+      "bytes": 37208,
+      "sha256": "bedebebafafec71a9525181412249f37c03c0d3fc3d5a09d674a685122d7e3bb"
+    },
+    {
+      "file": "styles.css",
+      "bytes": 11738,
+      "sha256": "eb316382ba43f891bc9dc52c3a756ca0fd88156092416b3c8e6a38e21afab3b3"
+    },
+    {
+      "file": "portal.css",
+      "bytes": 9663,
+      "sha256": "3bb4b5d87cbc66a39863f96af2e6aa349e376751b1f2dca81b03f7d4ff783ed4"
+    },
+    {
+      "file": "tests/portal.spec.cjs",
+      "bytes": 8748,
+      "sha256": "8944b765827c39bfc471ed2bee2b11215dc76200a6cdefa99f78bd77428cffec"
+    },
+    {
+      "file": "playwright.config.cjs",
+      "bytes": 176,
+      "sha256": "d5ed272d5dfd513a596e4477d6ec9f70188262c659d189ae2da928c69116b686"
+    }
+  ]
+}

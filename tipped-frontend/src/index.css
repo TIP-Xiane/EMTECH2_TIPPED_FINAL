@@ -1,0 +1,69 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&display=swap");
+@import "tailwindcss";
+@theme {
+  --color-burgundy: #821d32;
+  --color-ink: #202b3d;
+  --color-muted: #697586;
+  --color-line: #e3e7ed;
+  --color-canvas: #f5f7fa;
+  --font-sans: "DM Sans", sans-serif;
+  --font-heading: "Manrope", sans-serif;
+}
+@layer base {
+  body {
+    @apply m-0 bg-canvas text-ink font-sans text-sm;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply outline-offset-4;
+  }
+  button,
+  a {
+    @apply focus-visible:outline-2 focus-visible:outline-burgundy;
+  }
+  button:not(:disabled),
+  a {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+@layer components {
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded border border-burgundy bg-burgundy px-4 py-2.5 text-sm font-semibold text-white;
+  }
+  .btn-secondary {
+    @apply border-line bg-white text-ink;
+  }
+  .btn-text {
+    @apply border-transparent bg-transparent px-1 text-burgundy;
+  }
+  .panel {
+    @apply rounded border border-line bg-white p-5 sm:p-6;
+  }
+  .input {
+    @apply w-full min-h-11 rounded border border-slate-300 bg-white px-3 py-2.5 text-ink focus:outline-2 focus:outline-burgundy;
+  }
+  .notice {
+    @apply rounded bg-slate-100 p-4 text-xs leading-6 text-muted;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
