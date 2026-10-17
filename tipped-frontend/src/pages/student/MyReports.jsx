@@ -6,7 +6,7 @@ import Registry from "../../components/reports/Registry";
 import StatusBadge from "../../components/common/StatusBadge";
 import { Button, PageHeading, EmptyState } from "../../components/common/UI";
 export default function MyReports({ onView }) {
-  const { user } = useAuth(),
+  const { actor: user } = useAuth(),
     { reports, claims } = useReports(),
     [tab, setTab] = useState("All");
   const own = reports.filter(
@@ -27,9 +27,14 @@ export default function MyReports({ onView }) {
           </Link>
         }
       >
-        Follow OSA decisions and your ownership claims. Submitted records are
-        locked.
+        Follow your reports and ownership claims. Open a report to see its
+        updates.
       </PageHeading>
+      <p className="notice mb-5">
+        Reports are linked to this browser or your demo account. Keep your TIP
+        reference for follow-up with OSA. Contact numbers are callback details,
+        not sign-in credentials.
+      </p>
       <div
         className="mb-5 flex flex-wrap gap-2"
         aria-label="Report status filters"

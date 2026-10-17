@@ -20,6 +20,7 @@ export default function ReportItem() {
     title: "",
     category: "",
     site: user.site || "Arlegui",
+    siteDetail: "",
     location: "",
     itemDate: "",
     description: "",
@@ -100,8 +101,16 @@ export default function ReportItem() {
             })}
             {field("site", "Site", {
               as: "select",
-              children: SITES.map((v) => <option key={v}>{v}</option>),
+              children: SITES.map((v) => (
+                <option key={v} value={v}>
+                  {v === "Other" ? "Other / outside campus" : v}
+                </option>
+              )),
             })}
+            {values.site === "Other" &&
+              field("siteDetail", "Specify location", {
+                placeholder: "Place, street, or address",
+              })}
           </div>
         </section>
         <section className="border-t border-line pt-6">

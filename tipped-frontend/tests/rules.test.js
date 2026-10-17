@@ -10,6 +10,49 @@ import {
 import { imageError } from "../src/utils/reportRules.js";
 import { today } from "../src/utils/format.js";
 import { applyAction } from "../src/utils/transitions.js";
+
+test("outside locations require a specified place and are reviewable by assigned OSA", () => {
+  for (const type of ["Lost", "Found"]) {
+    const payload = {
+      type,
+      title: `Outside ${type} item`,
+      category: "Electronics",
+      site: "Other",
+      siteDetail: "",
+      location: "Sample street",
+      itemDate: today(),
+      description: "A plain black item for a demonstration.",
+      validDays: 4,
+    };
+    assert.ok(validateReport(payload, [], DEMO_USERS[0]).siteDetail);
+    payload.siteDetail = "Sample bus stop";
+    const submitted = applyAction(
+      createMockData(),
+      { type: "SUBMIT", payload },
+      DEMO_USERS[0],
+    );
+    assert.equal(submitted.state.reports[0].siteDetail, "Sample bus stop");
+    const review = {
+      type: "MODERATE",
+      payload: { reportId: submitted.result, status: "Approved" },
+    };
+    assert.throws(() =>
+      applyAction(submitted.state, review, {
+        ...DEMO_USERS[2],
+        sites: ["Arlegui"],
+      }),
+    );
+    assert.equal(
+      applyAction(submitted.state, review, DEMO_USERS[2]).state.reports[0]
+        .moderation,
+      "Approved",
+    );
+    assert.equal(
+      submitted.state.receipts.some((r) => r.reportId === submitted.result),
+      false,
+    );
+  }
+});
 test("verification and physical release are distinct, with invalid reversals blocked", () => {
   let data = createMockData();
   const osa = DEMO_USERS[2],

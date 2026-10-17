@@ -3,7 +3,7 @@ import { useReports } from "./ReportContext";
 import { useAuth } from "./AuthContext";
 const NotificationContext = createContext(null);
 export function NotificationProvider({ children }) {
-  const { user } = useAuth(),
+  const { actor: user } = useAuth(),
     { notifications, act } = useReports();
   const mine = notifications.filter((n) => n.recipientId === user?.id);
   return (

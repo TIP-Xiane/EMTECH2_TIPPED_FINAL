@@ -2,6 +2,8 @@
 
 Complete frontend migration of the existing campus lost-and-found prototype. React 19, Vite 8, Tailwind 4, JSX, React Hooks, Context API and React Router. No backend, production authentication or database is implemented.
 
+**October 17 update:** Open `/home` for the shared account-free dashboard, search, and lost/found reporting. Student and visitor forms include a review step, saved reference, and specified locations outside campus or in unlisted buildings. OSA uses the same black-and-yellow theme while preserving its review and custody workflows. See [STUDENT_VISITOR_UPDATE.md](docs/STUDENT_VISITOR_UPDATE.md) for the current flow, validation, and browser-local tracking limits. This supersedes the student sign-in requirement and student-screen descriptions below.
+
 ## Run
 
 ```powershell

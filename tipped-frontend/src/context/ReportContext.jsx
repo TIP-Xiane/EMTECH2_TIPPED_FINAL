@@ -24,7 +24,7 @@ function load() {
   return createMockData();
 }
 export function ReportProvider({ children }) {
-  const { user } = useAuth(),
+  const { actor: user } = useAuth(),
     [data, setData] = useState(load),
     latest = useRef(data),
     [site, setSite] = useState("All sites"),

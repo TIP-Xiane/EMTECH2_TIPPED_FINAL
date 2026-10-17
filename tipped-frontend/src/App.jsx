@@ -1,6 +1,16 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
+import PublicNavbar, {
+  PublicFooter,
+  WorkspaceNavbar,
+} from "./components/layout/PublicNavbar";
 import OSASidebar from "./components/layout/OSASidebar";
 import Footer from "./components/layout/Footer";
 import WorkflowDialogs from "./components/layout/WorkflowDialogs";
@@ -9,7 +19,9 @@ import { useAuth } from "./context/AuthContext";
 import { useReports } from "./context/ReportContext";
 import { useNotifications } from "./context/NotificationContext";
 import useClock from "./hooks/useClock";
-const Home = lazy(() => import("./pages/student/Home"));
+const Home = lazy(() => import("./pages/student/PublicHome"));
+const PublicBrowse = lazy(() => import("./pages/student/PublicBrowse"));
+const PublicReport = lazy(() => import("./pages/student/PublicReport"));
 const Browse = lazy(() => import("./pages/student/Browse"));
 const ReportItem = lazy(() => import("./pages/student/ReportItem"));
 const MyReports = lazy(() => import("./pages/student/MyReports"));
@@ -21,19 +33,28 @@ const Reports = lazy(() => import("./pages/osa/Reports"));
 const Records = lazy(() => import("./pages/osa/Records"));
 
 export default function App() {
-  const { user, preview, signOut } = useAuth(),
+  const { user, actor, preview, signOut } = useAuth(),
     { reports, act, storageError, setSite } = useReports(),
     { unread } = useNotifications(),
-    navigate = useNavigate();
+    navigate = useNavigate(),
+    location = useLocation();
+  const publicView =
+    user?.role !== "osa" &&
+    !["/login", "/register"].includes(location.pathname);
+  const osaView = user?.role === "osa";
+  const Header = osaView ? WorkspaceNavbar : publicView ? PublicNavbar : Navbar;
   const [dialog, setDialog] = useState(null),
     [message, setMessage] = useState("");
   useClock();
+  useEffect(() => {
+    if (publicView) window.scrollTo(0, 0);
+  }, [location.pathname, publicView]);
   useEffect(() => {
     if (!message) return;
     const id = setTimeout(() => setMessage(""), 6000);
     return () => clearTimeout(id);
   }, [message]);
-  const defaultPath = user?.role === "osa" ? "/osa" : user ? "/home" : "/login";
+  const defaultPath = user?.role === "osa" ? "/osa" : "/home";
   function switchRole() {
     const next = user.role === "osa" ? "student-alex" : "osa-reviewer";
     preview(next);
@@ -66,8 +87,12 @@ export default function App() {
     );
   const browse = <Browse reports={reports} user={user} onView={view} />;
   return (
-    <>
-      <Navbar
+    <div
+      className={
+        osaView ? "osa-portal" : publicView ? "public-portal" : undefined
+      }
+    >
+      <Header
         user={user}
         unread={unread}
         onNotifications={() => setDialog({ type: "notifications" })}
@@ -75,7 +100,7 @@ export default function App() {
         onSignOut={() => {
           signOut();
           setDialog(null);
-          navigate("/login");
+          navigate(publicView ? "/home" : "/login");
         }}
       />
       <main
@@ -100,19 +125,47 @@ export default function App() {
               />
               <Route
                 path="/home"
-                element={protectedPage("student", <Home onView={view} />)}
+                element={
+                  user?.role === "osa" ? (
+                    <Navigate to="/osa" replace />
+                  ) : (
+                    <Home onView={view} />
+                  )
+                }
               />
               <Route
                 path="/browse"
-                element={protectedPage("student", browse)}
+                element={
+                  user?.role === "osa" ? (
+                    <Navigate to="/osa" replace />
+                  ) : (
+                    <PublicBrowse
+                      reports={reports}
+                      user={actor}
+                      onView={view}
+                    />
+                  )
+                }
               />
               <Route
                 path="/report"
-                element={protectedPage("student", <ReportItem />)}
+                element={
+                  user?.role === "osa" ? (
+                    <Navigate to="/osa" replace />
+                  ) : (
+                    <PublicReport />
+                  )
+                }
               />
               <Route
                 path="/my-reports"
-                element={protectedPage("student", <MyReports onView={view} />)}
+                element={
+                  user?.role === "osa" ? (
+                    <Navigate to="/osa" replace />
+                  ) : (
+                    <MyReports onView={view} />
+                  )
+                }
               />
               <Route
                 path="/profile"
@@ -163,10 +216,14 @@ export default function App() {
           </Suspense>
         </div>
       </main>
-      <Footer />
+      {publicView || osaView ? (
+        <PublicFooter workspace={osaView} />
+      ) : (
+        <Footer />
+      )}
       {dialog && (
         <WorkflowDialogs
-          key={`${dialog.type}-${dialog.id || dialog.claimId || ""}-${user?.id}`}
+          key={`${dialog.type}-${dialog.id || dialog.claimId || ""}-${actor.id}`}
           dialog={dialog}
           setDialog={setDialog}
           onSuccess={setMessage}
@@ -189,6 +246,6 @@ export default function App() {
           </Button>
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -26,7 +26,9 @@ export default function ReportRow({
         )}
       </div>
       <div className="text-xs leading-6">
-        <p>{r.site}</p>
+        <p className="break-words">
+          {r.site === "Other" ? r.siteDetail || "Other location" : r.site}
+        </p>
         <p className="break-words text-muted">{r.location}</p>
         {r.type === "Found" && <p>{r.custody}</p>}
       </div>

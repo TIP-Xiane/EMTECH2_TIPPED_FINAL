@@ -17,7 +17,8 @@ export default function ReportReviewDialog({
   return (
     <ConfirmDialog title="OSA report review" onClose={onClose}>
       <p className="text-xs text-muted">
-        {r.id} · {r.site}
+        {r.id} ·{" "}
+        {r.site === "Other" ? r.siteDetail || "Other location" : r.site}
       </p>
       <h3 className="my-4 text-lg font-bold">{r.title}</h3>
       <div className="mb-4 flex flex-wrap gap-2">

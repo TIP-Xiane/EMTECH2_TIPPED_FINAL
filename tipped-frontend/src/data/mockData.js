@@ -26,7 +26,7 @@ export const DEMO_USERS = [
     email: "osa@example.invalid",
     password: "DemoOSA2026",
     role: "osa",
-    sites: ["Arlegui", "Casal"],
+    sites: ["Arlegui", "Casal", "Other"],
   },
 ];
 export function createMockData() {

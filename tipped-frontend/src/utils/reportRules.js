@@ -48,7 +48,11 @@ export function validateReport(input, reports, user) {
     errors.title = "Use at most 90 characters.";
   if (!CATEGORIES.includes(input.category))
     errors.category = "Select a category.";
-  if (!SITES.includes(input.site)) errors.site = "Select Arlegui or Casal.";
+  if (!SITES.includes(input.site))
+    errors.site = "Select Arlegui, Casal, or Other.";
+  if (input.site === "Other" && !input.siteDetail?.trim())
+    errors.siteDetail =
+      "Specify the place or address outside the listed campuses.";
   if (!input.location.trim()) errors.location = "Enter a general location.";
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(input.itemDate) ||

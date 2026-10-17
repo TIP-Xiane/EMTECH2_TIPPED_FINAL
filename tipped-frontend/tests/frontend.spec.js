@@ -27,7 +27,7 @@ test("credential login, keyboard dialog dismissal and registration stay frontend
   await page.getByLabel("Password", { exact: false }).fill("TemporaryDemo2026");
   await page.getByRole("button", { name: "Create demo profile" }).click();
   await expect(
-    page.getByRole("heading", { name: "Campus lost & found" }),
+    page.getByRole("heading", { name: /Find what matters/ }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -65,6 +65,14 @@ async function submit(page, title, { type = "Lost", image = false } = {}) {
   await page.getByRole("button", { name: `${type} Item`, exact: true }).click();
   await page.getByLabel("Item title").fill(title);
   await page.getByLabel("Category").selectOption("Electronics");
+  await page.getByLabel("Building").selectOption("Library");
+  await page.getByLabel("Floor").selectOption("1st Floor");
+  await page
+    .getByLabel(
+      type === "Lost" ? "Approximate time lost" : "Approximate time found",
+    )
+    .fill("10:30");
+  await page.getByLabel("Contact number").fill("09123456789");
   await page
     .getByLabel(type === "Lost" ? "Last seen at" : "Found at")
     .fill("Demo library hallway");
@@ -80,7 +88,8 @@ async function submit(page, title, { type = "Lost", image = false } = {}) {
       .setInputFiles({ name: "demo.png", mimeType: "image/png", buffer: png });
     await expect(page.getByAltText("Selected image preview")).toBeVisible();
   }
-  await page.getByRole("button", { name: "Submit for review" }).click();
+  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Confirm and submit" }).click();
   await expect(
     page.getByRole("heading", { name: "Report received" }),
   ).toBeVisible();
@@ -260,7 +269,7 @@ test("filters, Load more, validation and expired history behave consistently", a
       .getByRole("article"),
   ).toHaveCount(1);
   await page.goto("/report");
-  await page.getByRole("button", { name: "Submit for review" }).click();
+  await page.getByRole("button", { name: "Review report" }).click();
   await expect(page.getByText("Enter an item title.")).toBeVisible();
   await page.getByLabel("Item photograph").setInputFiles({
     name: "bad.txt",
@@ -284,12 +293,8 @@ test("filters, Load more, validation and expired history behave consistently", a
       .getByRole("region", { name: "Active report results" })
       .getByText("Green notebook", { exact: true }),
   ).toHaveCount(0);
-  await expect(
-    page.getByRole("region", { name: "Your submitted reports" }),
-  ).toContainText("Green notebook");
-  await expect(
-    page.getByRole("region", { name: "Your submitted reports" }),
-  ).toContainText("Listing expired");
+  await page.goto("/my-reports");
+  await expect(row(page, "Green notebook")).toContainText("Listing expired");
 });
 test("all required routes and representative mobile/tablet/desktop layouts load", async ({
   page,

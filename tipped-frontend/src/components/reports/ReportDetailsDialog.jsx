@@ -39,7 +39,10 @@ export default function ReportDetailsDialog({
       </div>
       <dl className="grid grid-cols-2 gap-4 text-sm">
         {[
-          ["Site", r.site],
+          [
+            "Site",
+            r.site === "Other" ? r.siteDetail || "Other location" : r.site,
+          ],
           ["Location", r.location],
           ["Category", r.category],
           ["Item date", dateLabel(r.itemDate)],

@@ -3,15 +3,43 @@ import { DEMO_USERS } from "../data/mockData";
 import { makeId } from "../utils/format";
 const AuthContext = createContext(null),
   KEY = "tipped.react.session.v1";
+function localReporter() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("tipped.react.reporter.v1"));
+    if (saved?.id)
+      return { id: saved.id, name: "Local reporter", role: "student" };
+  } catch {
+    /* Use a temporary identity when storage is unavailable. */
+  }
+  const reporter = {
+    id: makeId("REPORTER"),
+    name: "Local reporter",
+    role: "student",
+  };
+  try {
+    localStorage.setItem(
+      "tipped.react.reporter.v1",
+      JSON.stringify({ id: reporter.id }),
+    );
+  } catch {
+    /* Temporary identity. */
+  }
+  return reporter;
+}
 function savedSession() {
   try {
-    return JSON.parse(sessionStorage.getItem(KEY));
+    const session = JSON.parse(sessionStorage.getItem(KEY));
+    const demo = DEMO_USERS.find(
+      (u) => u.id === session?.id && u.role === "osa",
+    );
+    return demo ? { ...session, sites: demo.sites } : session;
   } catch {
     return null;
   }
 }
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(savedSession);
+  const [reporter] = useState(localReporter);
   function enter(next) {
     setUser(next);
     try {
@@ -41,7 +69,14 @@ export function AuthProvider({ children }) {
   }
   return (
     <AuthContext.Provider
-      value={{ user, login, preview, register, signOut: () => enter(null) }}
+      value={{
+        user,
+        actor: user || reporter,
+        login,
+        preview,
+        register,
+        signOut: () => enter(null),
+      }}
     >
       {children}
     </AuthContext.Provider>

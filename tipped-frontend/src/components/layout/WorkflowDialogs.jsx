@@ -19,7 +19,7 @@ export default function WorkflowDialogs({
   onModerate,
   onView,
 }) {
-  const { user } = useAuth(),
+  const { actor: user } = useAuth(),
     { reports, claims, events, act } = useReports(),
     [error, setError] = useState("");
   if (!dialog || !user) return null;

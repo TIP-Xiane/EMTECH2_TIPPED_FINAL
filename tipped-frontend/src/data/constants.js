@@ -1,4 +1,4 @@
-export const SITES = ["Arlegui", "Casal"];
+export const SITES = ["Arlegui", "Casal", "Other"];
 export const CATEGORIES = [
   "Electronics",
   "ID/Cards",

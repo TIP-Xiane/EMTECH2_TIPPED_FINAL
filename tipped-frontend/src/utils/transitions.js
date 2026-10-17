@@ -57,10 +57,19 @@ export function applyAction(
         type: payload.type,
         category: payload.category,
         site: payload.site,
+        ...(payload.site === "Other"
+          ? { siteDetail: payload.siteDetail.trim() }
+          : {}),
         location: payload.location.trim(),
         itemDate: payload.itemDate,
         description: payload.description.trim(),
         image: payload.image || "",
+        ...(payload.reporter
+          ? {
+              reporter: structuredClone(payload.reporter),
+              itemTime: payload.itemTime || "",
+            }
+          : {}),
         publicPhoto: false,
         moderation: "Pending Review",
         custody:

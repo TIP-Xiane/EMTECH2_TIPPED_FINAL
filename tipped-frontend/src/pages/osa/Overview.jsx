@@ -22,8 +22,9 @@ export default function Overview({ onView }) {
         separate from release.
       </PageHeading>
       <p className="notice mb-6">
-        Illustrative records only. Your demo reviewer is assigned to Arlegui and
-        Casal. Approval controls listing visibility, not custody.
+        Illustrative records only. Your demo reviewer covers Arlegui, Casal, and
+        reports from other locations. Approval controls listing visibility, not
+        custody.
       </p>
       <div className="panel mb-7 grid gap-5 sm:grid-cols-2 min-[1100px]:grid-cols-4">
         {[
