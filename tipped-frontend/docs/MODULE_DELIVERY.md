@@ -80,7 +80,7 @@ Expected behavior: every required student/OSA destination is navigable; all-site
 
 Verification: final results are recorded in `VERIFICATION.md`. Commands: `npm test`, `npm run test:e2e`, `npm run build`. Layouts exercised at 320, 390, 768, 1024 and 1440 px. Screenshot output: `artifacts/react-student-desktop.png`, `react-osa-desktop.png`, `react-osa-mobile.png`.
 
-Deliverable: complete component-based Phase 1 prototype. Deferred: Django/REST/PostgreSQL, real authentication, secure evidence storage, server permission checks, concurrency, guest/faculty/Security workflows, official pickup policies, and complete accessibility/security audits.
+Deliverable: component-based frontend with an Express/PostgreSQL API baseline, verified-email student accounts, provisioned OSA accounts, guest tracking links, and server-enforced workflow rules. Deferred: production hosting/provider configuration, managed private object storage, formal institutional identity matching and pickup policies, guest/faculty/Security roles beyond visitor reporting, and complete accessibility/security audits. PostgreSQL integration and cloud deployment must be validated against the selected providers before real institutional use.
 
 ## Commands and review guidance
 

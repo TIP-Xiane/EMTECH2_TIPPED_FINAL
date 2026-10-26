@@ -3,24 +3,41 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:api": "node --env-file-if-exists=.env --watch server/src/server.js",
+    "dev:full": "concurrently \"npm:dev\" \"npm:dev:api\"",
+    "start": "node --env-file-if-exists=.env server/src/server.js",
+    "db:migrate": "node --env-file-if-exists=.env server/src/migrate.js",
+    "db:create-osa": "node --env-file-if-exists=.env server/src/create-osa.js",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "test": "node --test tests/rules.test.js",
+    "test": "node --test tests/rules.test.js server/test/*.test.js",
+    "test:api": "node --test server/test/*.test.js",
     "test:e2e": "playwright test",
-    "format": "prettier --write src tests *.js *.json *.html",
-    "format:check": "prettier --check src tests *.js *.json *.html"
+    "format": "prettier --write src tests server/src server/test *.js *.json *.html",
+    "format:check": "prettier --check src tests server/src server/test *.js *.json *.html"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "nodemailer": "^10.2.1",
+    "pg": "^8.16.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-router-dom": "7.18.4"
+    "react-router-dom": "7.18.4",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "@tailwindcss/vite": "4.3.3",
     "@vitejs/plugin-react": "6.1.2",
+    "concurrently": "^9.2.1",
     "prettier": "3.9.10",
     "tailwindcss": "4.3.3",
     "vite": "8.3.4"

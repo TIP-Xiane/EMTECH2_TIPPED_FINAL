@@ -9,6 +9,7 @@ export default function Navbar({
   onSignOut,
   unread,
   onNotifications,
+  minimal = false,
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -51,48 +52,51 @@ export default function Navbar({
               ))}
             </nav>
           )}
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            {user ? (
-              <>
-                <span className="hidden text-xs text-burgundy min-[1230px]:inline">
-                  {user.role === "osa" ? "OSA workspace" : "Student portal"}
-                </span>
-                <NotificationButton unread={unread} onClick={onNotifications} />
-                <Button variant="secondary" onClick={onSwitch}>
-                  {user.role === "osa" ? "Student account" : "OSA account"}
-                </Button>
-                <Button variant="text" onClick={onSignOut}>
-                  Sign out
-                </Button>
-                {user.role === "student" && (
-                  <Button
-                    variant="secondary"
-                    className="min-[900px]:hidden"
-                    aria-label="Toggle navigation"
-                    aria-expanded={open}
-                    aria-controls="student-navigation"
-                    onClick={() => setOpen(!open)}
-                  >
-                    ☰
+          {!minimal && (
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {user ? (
+                <>
+                  <span className="hidden text-xs text-burgundy min-[1230px]:inline">
+                    {user.role === "osa" ? "OSA workspace" : "Student portal"}
+                  </span>
+                  <NotificationButton
+                    unread={unread}
+                    onClick={onNotifications}
+                  />
+                  <Button variant="secondary" onClick={onSwitch}>
+                    {user.role === "osa" ? "Student account" : "OSA account"}
                   </Button>
-                )}
-              </>
-            ) : (
-              <span className="text-xs text-muted">
-                Front-end demonstration
-              </span>
-            )}
-          </div>
+                  <Button variant="text" onClick={onSignOut}>
+                    Sign out
+                  </Button>
+                  {user.role === "student" && (
+                    <Button
+                      variant="secondary"
+                      className="min-[900px]:hidden"
+                      aria-label="Toggle navigation"
+                      aria-expanded={open}
+                      aria-controls="student-navigation"
+                      onClick={() => setOpen(!open)}
+                    >
+                      ☰
+                    </Button>
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
         </div>
       </header>
-      <div className="border-b border-line bg-slate-100 px-5 py-2 text-[11px] text-muted">
-        <div className="mx-auto flex max-w-[1260px] flex-wrap justify-between gap-2">
-          <span>T.I.P. Manila · Proposed Arlegui & Casal pilot</span>
-          <span>
-            Mock records · Verification required · No backend connected
-          </span>
+      {!minimal && (
+        <div className="border-b border-line bg-slate-100 px-5 py-2 text-[11px] text-muted">
+          <div className="mx-auto flex max-w-[1260px] flex-wrap justify-between gap-2">
+            <span>T.I.P. Manila · Proposed Arlegui & Casal pilot</span>
+            <span>
+              Mock records · Verification required · No backend connected
+            </span>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

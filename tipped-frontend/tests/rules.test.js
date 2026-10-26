@@ -242,20 +242,38 @@ test("missing custody blocks verification and rejected claims leave moderation u
   assert.equal(data.reports[2].moderation, "Approved");
   assert.equal(data.releases.length, 0);
 });
-test("read state is recipient-specific and wrong-site review is denied", () => {
+test("notification reads are inbox-only, recipient-specific and OSA site-scoped", () => {
   const data = createMockData();
   data.notifications.push({
     id: "TEST",
     recipientId: "student-alex",
+    reportId: "TIP-0005",
     read: false,
   });
+  data.notifications.push({
+    id: "OTHER-SITE",
+    recipientId: "osa-reviewer",
+    reportId: "TIP-0002",
+    read: false,
+  });
+  const originalModeration = data.reports.find(
+    (report) => report.id === "TIP-0005",
+  ).moderation;
   const next = applyAction(
     data,
     { type: "READ_NOTIFICATIONS" },
-    DEMO_USERS[2],
+    { ...DEMO_USERS[2], sites: ["Arlegui"] },
   ).state;
   assert.equal(next.notifications.find((n) => n.id === "TEST").read, false);
-  assert.equal(next.notifications[0].read, true);
+  assert.equal(
+    next.notifications.find((n) => n.id === "OTHER-SITE").read,
+    false,
+  );
+  assert.equal(next.notifications.find((n) => n.id === "NT-SEED").read, true);
+  assert.equal(
+    next.reports.find((report) => report.id === "TIP-0005").moderation,
+    originalModeration,
+  );
   assert.throws(() =>
     applyAction(
       data,

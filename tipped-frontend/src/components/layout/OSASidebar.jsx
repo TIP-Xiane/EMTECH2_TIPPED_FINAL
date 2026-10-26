@@ -1,27 +1,52 @@
-import { NavLink } from "react-router-dom";
-import { OSA_NAV } from "../../data/constants";
-export default function OSASidebar() {
+import { NavLink, useLocation } from "react-router-dom";
+
+const primaryLinks = [
+  ["/osa", "Needs Attention"],
+  ["/osa/reports", "Report Review"],
+  ["/osa/claims", "Ownership Claims"],
+];
+const additionalLinks = [
+  ["/osa/turnover", "Turnover log"],
+  ["/osa/releases", "Release records"],
+  ["/osa/audit", "Audit history"],
+  ["/osa/registry", "Approved registry"],
+  ["/osa/create", "Create report"],
+  ["/osa/account", "OSA account"],
+];
+
+function NavigationLink({ path, label }) {
   return (
-    <aside className="osa-sidebar min-w-0 self-start rounded border border-line bg-white p-3 min-[760px]:sticky min-[760px]:top-28">
-      <p className="mb-4 hidden px-3 text-xs font-bold tracking-widest text-burgundy min-[760px]:block">
-        OSA WORKSPACE
-      </p>
-      <nav
-        aria-label="OSA navigation"
-        className="flex gap-1 overflow-x-auto min-[760px]:flex-col"
-      >
-        {OSA_NAV.map(([path, label]) => (
-          <NavLink
-            key={path}
-            to={path}
-            end={path === "/osa"}
-            className={({ isActive }) =>
-              `shrink-0 whitespace-nowrap rounded px-3 py-3 text-xs ${isActive ? "osa-nav-active font-semibold" : ""}`
-            }
-          >
-            {label}
-          </NavLink>
+    <NavLink
+      to={path}
+      end={path === "/osa"}
+      className={({ isActive }) =>
+        `osa-sidebar-link ${isActive ? "osa-nav-active" : ""}`
+      }
+    >
+      {label}
+    </NavLink>
+  );
+}
+
+export default function OSASidebar() {
+  const { pathname } = useLocation(),
+    additionalActive = additionalLinks.some(([path]) => pathname === path);
+
+  return (
+    <aside className="osa-sidebar">
+      <p>OSA WORKSPACE</p>
+      <nav aria-label="OSA navigation">
+        {primaryLinks.map(([path, label]) => (
+          <NavigationLink key={path} path={path} label={label} />
         ))}
+        <details open={additionalActive}>
+          <summary>Records &amp; tools</summary>
+          <div className="osa-sidebar-secondary">
+            {additionalLinks.map(([path, label]) => (
+              <NavigationLink key={path} path={path} label={label} />
+            ))}
+          </div>
+        </details>
       </nav>
     </aside>
   );

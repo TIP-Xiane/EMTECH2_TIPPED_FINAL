@@ -14,11 +14,11 @@ export default function ClaimReviewDialog({
   const { receipts, act } = useReports(),
     [error, setError] = useState("");
   const receipt = receipts.find((x) => x.reportId === r.id);
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     try {
-      act("CLAIM_DECIDE", {
+      await act("CLAIM_DECIDE", {
         reportId: r.id,
         claimId: c.id,
         status: e.nativeEvent.submitter.value,
@@ -81,14 +81,19 @@ export default function ClaimReviewDialog({
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" name="decision" value="Verified">
+            <Button
+              type="submit"
+              name="decision"
+              value="Verified"
+              className="decision-action decision-action-approved"
+            >
               Verify claim
             </Button>
             <Button
               type="submit"
               name="decision"
               value="Rejected"
-              variant="secondary"
+              className="decision-action decision-action-rejected"
             >
               Reject claim
             </Button>

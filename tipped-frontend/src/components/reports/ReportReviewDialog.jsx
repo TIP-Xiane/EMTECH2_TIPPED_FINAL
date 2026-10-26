@@ -53,9 +53,9 @@ export default function ReportReviewDialog({
           </label>
           <Button
             variant="secondary"
-            onClick={() => {
+            onClick={async () => {
               try {
-                act("PHOTO", { reportId: r.id, publicPhoto });
+                await act("PHOTO", { reportId: r.id, publicPhoto });
                 onSuccess("Photo visibility saved.");
               } catch (err) {
                 setError(err.message);
@@ -74,7 +74,7 @@ export default function ReportReviewDialog({
             {["Approved", "Rejected", "Pending Review"].map((status) => (
               <Button
                 key={status}
-                variant={status === "Approved" ? "primary" : "secondary"}
+                className={`decision-action decision-action-${status === "Approved" ? "approved" : status === "Rejected" ? "rejected" : "pending"}`}
                 disabled={r.moderation === status}
                 onClick={() => onModerate(r.id, status)}
               >

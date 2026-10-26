@@ -8,9 +8,15 @@ export default function ReportRow({
   history = false,
 }) {
   const expired = Date.now() >= Date.parse(r.expiresAt);
+  const moderationStyle =
+    {
+      "Pending Review": "pending",
+      Approved: "approved",
+      Rejected: "rejected",
+    }[r.moderation] || "pending";
   return (
     <article
-      className={`grid min-w-0 gap-3 border-b border-line bg-white px-5 py-5 last:border-b-0 ${actions ? "min-[1100px]:grid-cols-[1.3fr_1fr_1fr]" : "min-[760px]:grid-cols-[1.7fr_1fr_1fr_auto]"} items-center`}
+      className={`report-row report-row-${moderationStyle} grid min-w-0 gap-3 border-b border-line bg-white px-5 py-5 last:border-b-0 ${actions ? "min-[1100px]:grid-cols-[1.3fr_1fr_1fr]" : "min-[760px]:grid-cols-[1.7fr_1fr_1fr_auto]"} items-center`}
       aria-label={`${r.title} report`}
     >
       <div className="min-w-0">
@@ -40,11 +46,19 @@ export default function ReportRow({
             : `Expires ${dateLabel(r.expiresAt)} · ${r.validDays} days`}
         </p>
       </div>
-      <div className={actions ? "min-[1100px]:col-span-3" : ""}>
-        <Button variant="text" onClick={() => onView(r.id)}>
+      <div
+        className={`report-row-controls ${actions ? "has-review-actions min-[1100px]:col-span-3" : ""}`}
+      >
+        <Button
+          variant="secondary"
+          className="report-view-button"
+          onClick={() => onView(r.id)}
+        >
           View report →
         </Button>
-        {actions}
+        {actions && (
+          <div className="report-row-decision-actions">{actions}</div>
+        )}
       </div>
     </article>
   );

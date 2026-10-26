@@ -18,6 +18,7 @@ export default function WorkflowDialogs({
   onSuccess,
   onModerate,
   onView,
+  onOpenNotification,
 }) {
   const { actor: user } = useAuth(),
     { reports, claims, events, act } = useReports(),
@@ -29,7 +30,7 @@ export default function WorkflowDialogs({
       onSuccess(text);
     };
   if (dialog.type === "notifications")
-    return <NotificationsDialog onClose={close} onOpen={onView} />;
+    return <NotificationsDialog onClose={close} onOpen={onOpenNotification} />;
   const claim = claims.find((c) => c.id === dialog.claimId),
     r = reports.find((r) => r.id === (dialog.id || claim?.reportId));
   if (!r || !canViewReport(user, r))
@@ -56,9 +57,9 @@ export default function WorkflowDialogs({
       <ConfirmDialog title="Confirm item recovery" onClose={close}>
         <p className="mb-4">Have you recovered your {r.title.toLowerCase()}?</p>
         <Button
-          onClick={() => {
+          onClick={async () => {
             try {
-              act("RECOVER", { reportId: r.id });
+              await act("RECOVER", { reportId: r.id });
               finish("Report outcome updated to Recovered.");
             } catch (err) {
               setError(err.message);
@@ -101,10 +102,10 @@ export default function WorkflowDialogs({
     return (
       <ConfirmDialog title="Reject report with reason" onClose={close}>
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             try {
-              act("MODERATE", {
+              await act("MODERATE", {
                 reportId: r.id,
                 status: "Rejected",
                 reason: new FormData(e.currentTarget).get("reason"),

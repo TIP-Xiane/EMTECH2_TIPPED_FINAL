@@ -5,7 +5,11 @@ const NotificationContext = createContext(null);
 export function NotificationProvider({ children }) {
   const { actor: user } = useAuth(),
     { notifications, act } = useReports();
-  const mine = notifications.filter((n) => n.recipientId === user?.id);
+  const mine = notifications.filter(
+    (n) =>
+      n.recipientId === user?.id ||
+      (user?.role === "osa" && n.recipientId === "osa-reviewer"),
+  );
   return (
     <NotificationContext.Provider
       value={{

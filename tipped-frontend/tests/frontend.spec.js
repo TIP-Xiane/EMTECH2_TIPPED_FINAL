@@ -4,20 +4,105 @@ test("credential login, keyboard dialog dismissal and registration stay frontend
   page,
 }) => {
   await page.goto("/login");
-  await page.getByLabel("Demo account identifier").fill("osa@example.invalid");
-  await page.getByLabel("Demo password").fill("DemoOSA2026");
+  await page.getByLabel("OSA administrator").check();
+  await page.getByLabel("Account email").fill("osa@example.invalid");
+  await page.getByLabel("Password").fill("DemoOSA2026");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Campus overview" }),
+    page.getByRole("heading", { name: "Needs attention" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Reports to review" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Ownership claims" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Items awaiting receipt" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("1 task")).toBeVisible();
+  const viewReportButton = page
+    .locator(".osa-pending-preview")
+    .getByRole("button", { name: "View report →" });
+  await expect(viewReportButton).toBeVisible();
+  await expect(viewReportButton).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
+  await expect(viewReportButton).toHaveCSS("border-color", "rgb(36, 118, 111)");
+  await expect(viewReportButton).toHaveCSS("color", "rgb(29, 93, 88)");
+  await viewReportButton.hover();
+  await expect(viewReportButton).toHaveCSS(
+    "background-color",
+    "rgb(233, 243, 241)",
+  );
+  await page.getByRole("heading", { name: "Needs attention" }).hover();
+  await expect(viewReportButton).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
+  await expect(viewReportButton).toHaveCSS("min-width", "116px");
+  await expect(viewReportButton).toHaveCSS("padding", "9px 14px");
+  await viewReportButton.click();
+  const reviewDialog = page.getByRole("dialog");
+  const closeReviewDialog = reviewDialog.getByRole("button", {
+    name: "Close dialog",
+  });
+  await expect(closeReviewDialog).toBeVisible();
+  await expect(closeReviewDialog).toHaveCSS("border-radius", "50%");
+  await expect(closeReviewDialog).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
+  await closeReviewDialog.click();
+  await expect(page.getByRole("link", { name: "Report Review" })).toHaveCSS(
+    "color",
+    "rgb(214, 224, 226)",
+  );
+  await page.getByText("Records & tools").click();
+  await expect(page.getByRole("link", { name: "Turnover log" })).toBeVisible();
+  await page.getByText("Records & tools").click();
   await page.getByRole("button", { name: /^Notifications/ }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await page
-    .getByRole("link", { name: "Create a demo student profile" })
+  const notifications = page.getByRole("dialog");
+  await expect(notifications).toBeVisible();
+  await expect(notifications).toContainText(
+    "New reports and ownership claims appear here.",
+  );
+  await expect(
+    notifications.getByRole("button", { name: "Close dialog" }),
+  ).toBeVisible();
+  await expect(
+    notifications.locator(".notification-state").first(),
+  ).toHaveAttribute("aria-label", "Unread");
+  await expect(
+    notifications.getByRole("button", { name: "Open report queue →" }).first(),
+  ).toBeVisible();
+  await expect(
+    notifications.getByRole("button", { name: "Approve" }),
+  ).toHaveCount(0);
+  await notifications
+    .getByRole("button", { name: "Open report queue →" })
+    .first()
     .click();
+  await expect(page).toHaveURL(/\/osa\/reports$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(row(page, "Graphing calculator")).toContainText(
+    "Pending Review",
+  );
+  await page.goto("/osa");
+  await page.getByRole("button", { name: /^Notifications/ }).click();
+  const refreshedNotifications = page.getByRole("dialog");
+  await refreshedNotifications
+    .getByRole("button", { name: "Mark all as read" })
+    .click();
+  await expect(
+    refreshedNotifications.locator(".notification-state").first(),
+  ).toHaveAttribute("aria-label", "Read");
+  await expect(page.getByLabel("1 task")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(refreshedNotifications).toHaveCount(0);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.getByRole("link", { name: "Create an account" }).click();
   await page.getByLabel("Full name").fill("Fictional test student");
   await page
     .getByLabel("School identifier / email")
@@ -27,7 +112,7 @@ test("credential login, keyboard dialog dismissal and registration stay frontend
   await page.getByLabel("Password", { exact: false }).fill("TemporaryDemo2026");
   await page.getByRole("button", { name: "Create demo profile" }).click();
   await expect(
-    page.getByRole("heading", { name: /Find what matters/ }),
+    page.getByRole("heading", { name: "What do you need today?" }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -46,18 +131,66 @@ async function enter(page, role = "student") {
   await page.goto("/login");
   if (await page.getByRole("button", { name: "Sign out", exact: true }).count())
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.getByText("Demo account details").click();
   await page
     .getByRole("button", {
       name:
         role === "osa"
-          ? "Open OSA account"
+          ? "Use OSA demo reviewer"
           : role === "bea"
-            ? "Second student (Bea)"
-            : "Open Student account",
+            ? "Use Bea · demo student"
+            : "Use Alex · demo student",
       exact: true,
     })
     .click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
 }
+
+test("sign-in separates roles, retains demo accounts, and offers guest access", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByText("Mock records")).toHaveCount(0);
+  await expect(page.locator(".login-shell")).toHaveCSS(
+    "background-color",
+    "rgb(243, 246, 247)",
+  );
+  await expect(page.locator(".login-submit")).toHaveCSS(
+    "background-color",
+    "rgb(240, 190, 36)",
+  );
+  await expect(page.locator(".login-card")).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
+  await expect(
+    page.getByRole("button", { name: "Continue as guest" }),
+  ).toBeVisible();
+  await page.getByLabel("OSA administrator").check();
+  await page.getByLabel("Account email").fill("student@example.invalid");
+  await page.getByLabel("Password").fill("DemoStudent2026");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("selected account type");
+
+  await page.getByLabel("Student", { exact: true }).check();
+  await page.getByText("Demo account details").click();
+  await page.getByRole("button", { name: "Use Alex · demo student" }).click();
+  await expect(page.getByLabel("Account email")).toHaveValue(
+    "student@example.invalid",
+  );
+  await expect(page.getByLabel("Password")).toHaveValue("DemoStudent2026");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/home$/);
+
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Continue as guest" }).click();
+  await expect(page).toHaveURL(/\/home$/);
+  await expect(
+    page.getByRole("heading", { name: "What do you need today?" }),
+  ).toBeVisible();
+});
 const row = (p, title) =>
   p.getByRole("article", { name: `${title} report`, exact: true });
 async function submit(page, title, { type = "Lost", image = false } = {}) {
@@ -88,7 +221,7 @@ async function submit(page, title, { type = "Lost", image = false } = {}) {
       .setInputFiles({ name: "demo.png", mimeType: "image/png", buffer: png });
     await expect(page.getByAltText("Selected image preview")).toBeVisible();
   }
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await page.getByRole("button", { name: "Confirm and submit" }).click();
   await expect(
     page.getByRole("heading", { name: "Report received" }),
@@ -118,18 +251,97 @@ test("student submission, OSA decisions and recipient notifications synchronize 
   );
   await osa.getByRole("button", { name: "Close dialog" }).click();
   await osa.getByRole("link", { name: "Report Review", exact: true }).click();
-  await row(osa, "Cross-tab report")
-    .getByRole("button", { name: "Approve", exact: true })
-    .click();
+  const osaReport = row(osa, "Cross-tab report");
+  const rowControls = osaReport.locator(".report-row-controls");
+  await expect(rowControls).toHaveCSS("display", "flex");
+  await expect(osaReport).toHaveCSS("border-left-color", "rgb(226, 184, 63)");
+  await expect(
+    osaReport.getByRole("button", { name: "View report →" }),
+  ).toBeVisible();
+  await expect(osaReport.getByRole("button", { name: "Approve" })).toHaveCSS(
+    "background-color",
+    "rgb(40, 116, 75)",
+  );
+  await expect(osaReport.getByRole("button", { name: "Approve" })).toHaveCSS(
+    "min-height",
+    "36px",
+  );
+  await expect(
+    osaReport.getByRole("button", { name: "View report →" }),
+  ).toHaveCSS("min-height", "40px");
+  await expect(osaReport.getByRole("button", { name: "Reject" })).toHaveCSS(
+    "background-color",
+    "rgb(179, 67, 75)",
+  );
+  await expect(osaReport.getByRole("button", { name: "Pending" })).toHaveCSS(
+    "background-color",
+    "rgb(194, 122, 24)",
+  );
+  const decisionButtons = osaReport.locator(
+    ".report-row-decision-actions .btn",
+  );
+  await expect(decisionButtons).toHaveCount(3);
+  for (const width of [390, 320]) {
+    await osa.setViewportSize({ width, height: 844 });
+    const buttonRects = await rowControls
+      .locator(".btn")
+      .evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const { x, y, width, height } = button.getBoundingClientRect();
+          return { x, y, width, height };
+        }),
+      );
+    for (let i = 0; i < buttonRects.length; i++) {
+      for (let j = i + 1; j < buttonRects.length; j++) {
+        const a = buttonRects[i];
+        const b = buttonRects[j];
+        expect(
+          a.x + a.width <= b.x ||
+            b.x + b.width <= a.x ||
+            a.y + a.height <= b.y ||
+            b.y + b.height <= a.y,
+        ).toBeTruthy();
+      }
+    }
+  }
+  await osa.setViewportSize({ width: 1440, height: 900 });
+  await osaReport.getByRole("button", { name: "Approve", exact: true }).click();
   await expect(row(student, "Cross-tab report")).toContainText("Approved");
-  await student.getByRole("button", { name: /^Notifications/ }).click();
-  await expect(student.getByRole("dialog")).toContainText(
+  await osa.getByRole("button", { name: /^Notifications/ }).click();
+  const osaWorkAlerts = osa.getByRole("dialog");
+  await expect(osaWorkAlerts).not.toContainText(
     "OSA marked Cross-tab report Approved",
   );
-  await student.getByRole("button", { name: "Close dialog" }).click();
-  await row(osa, "Cross-tab report")
-    .getByRole("button", { name: "Reject", exact: true })
+  await osa.getByRole("button", { name: "Close dialog" }).click();
+  const moderationToast = osa.getByRole("status");
+  const dismissToast = moderationToast.getByRole("button", { name: "Dismiss" });
+  await expect(dismissToast).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(dismissToast).toHaveCSS("padding", "7px 12px");
+  await dismissToast.click();
+  await student.getByRole("button", { name: /^Notifications/ }).click();
+  const studentUpdates = student.getByRole("dialog");
+  await expect(studentUpdates).toContainText(
+    "OSA marked Cross-tab report Approved",
+  );
+  await expect(studentUpdates).toContainText(
+    "Updates about your report, item receipt, and ownership claims appear here.",
+  );
+  await expect(
+    studentUpdates.getByRole("button", { name: "View report →" }),
+  ).toBeVisible();
+  await studentUpdates
+    .getByRole("button", { name: "View report →" })
+    .first()
     .click();
+  await expect(student.getByRole("dialog")).toContainText("Approved");
+  await student.getByRole("button", { name: "Close dialog" }).click();
+  await osaReport.getByRole("button", { name: "Reject", exact: true }).click();
+  const rejectionDialog = osa.getByRole("dialog");
+  const closeRejectionDialog = rejectionDialog.getByRole("button", {
+    name: "Close dialog",
+  });
+  await expect(closeRejectionDialog).toBeVisible();
+  await expect(closeRejectionDialog).toHaveCSS("border-radius", "50%");
   await osa
     .getByLabel("Reason for rejection")
     .fill("Please describe the general appearance more precisely.");
@@ -138,11 +350,23 @@ test("student submission, OSA decisions and recipient notifications synchronize 
   await expect(row(student, "Cross-tab report")).toContainText(
     "more precisely",
   );
-  await row(osa, "Cross-tab report")
-    .getByRole("button", { name: "Pending", exact: true })
+  await osaReport
+    .getByRole("button", { name: "Undo review", exact: true })
+    .click();
+  await expect(osa.getByRole("dialog")).toContainText(
+    "The reporter will be notified, and the decision will remain in the activity history.",
+  );
+  await osa
+    .getByRole("button", { name: "Undo review", exact: true })
+    .last()
     .click();
   await expect(row(student, "Cross-tab report")).toContainText(
     "Pending Review",
+  );
+  await expect(osaReport).toContainText("Pending Review");
+  await student.getByRole("button", { name: /^Notifications/ }).click();
+  await expect(student.getByRole("dialog")).toContainText(
+    "OSA marked Cross-tab report Pending Review",
   );
   await student.reload();
   await expect(row(student, "Cross-tab report")).toContainText(
@@ -180,9 +404,30 @@ test("different mock students have separate pending/history visibility and photo
   await osa.getByRole("button", { name: "Save photo visibility" }).click();
   await expect(bea.getByAltText("Photo of Private photo report")).toBeVisible();
   await alex.goto("/my-reports");
-  await row(alex, "Private photo report")
-    .getByRole("button", { name: "View report" })
-    .click();
+  const myReportViewButton = row(alex, "Private photo report").getByRole(
+    "button",
+    { name: "View report →" },
+  );
+  await expect(myReportViewButton).toBeVisible();
+  await expect(myReportViewButton).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
+  await expect(myReportViewButton).toHaveCSS("color", "rgb(29, 93, 88)");
+  await expect(myReportViewButton).toHaveCSS("min-width", "116px");
+  await expect(myReportViewButton).toHaveCSS("padding", "9px 14px");
+  await myReportViewButton.hover();
+  await expect(myReportViewButton).toHaveCSS(
+    "background-color",
+    "rgb(233, 243, 241)",
+  );
+  await alex.mouse.down();
+  await expect(myReportViewButton).toHaveCSS(
+    "background-color",
+    "rgb(216, 234, 231)",
+  );
+  await alex.mouse.up();
+  await expect(alex.getByRole("dialog")).toBeVisible();
   await expect(
     alex.getByAltText("Photo of Private photo report"),
   ).toBeVisible();
@@ -208,6 +453,17 @@ test("receipt, private claim verification and physical release remain separate",
     .fill("A private circular mark appears on the underside.");
   await osa.getByRole("checkbox").check();
   await osa.getByRole("button", { name: "Confirm receipt" }).click();
+  await osa.goto("/osa/turnover");
+  const reviewReportButton = osa
+    .getByRole("article")
+    .filter({ hasText: "Black everyday backpack" })
+    .getByRole("button", { name: "Review report →" });
+  await expect(reviewReportButton).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(reviewReportButton).toHaveCSS("padding", "10px 16px");
+  await expect(reviewReportButton).toHaveCSS("border-radius", "8px");
+  await reviewReportButton.click();
+  await expect(osa.getByRole("dialog")).toBeVisible();
+  await osa.getByRole("button", { name: "Close dialog" }).click();
   await student.goto("/browse");
   await row(student, "Blue insulated tumbler")
     .getByRole("button", { name: "View report" })
@@ -217,6 +473,18 @@ test("receipt, private claim verification and physical release remain separate",
     .getByLabel("Private ownership explanation")
     .fill("I can identify the circular mark on the underside.");
   await student.getByRole("button", { name: "Submit private claim" }).click();
+  await osa.getByRole("button", { name: /^Notifications/ }).click();
+  const claimAlerts = osa.getByRole("dialog");
+  await expect(claimAlerts).toContainText("Ownership claim");
+  await expect(
+    claimAlerts.getByRole("button", { name: "Open claims queue →" }),
+  ).toBeVisible();
+  await claimAlerts
+    .getByRole("button", { name: "Open claims queue →" })
+    .first()
+    .click();
+  await expect(osa).toHaveURL(/\/osa\/claims$/);
+  await expect(osa.getByRole("dialog")).toHaveCount(0);
   await osa.goto("/osa/claims");
   await osa.getByRole("button", { name: "Review claim" }).click();
   await osa
@@ -269,7 +537,7 @@ test("filters, Load more, validation and expired history behave consistently", a
       .getByRole("article"),
   ).toHaveCount(1);
   await page.goto("/report");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(page.getByText("Enter an item title.")).toBeVisible();
   await page.getByLabel("Item photograph").setInputFiles({
     name: "bad.txt",

@@ -89,11 +89,18 @@ export default function Records({ kind, onReceipt, onClaim, onView }) {
                       ))}
                     <div className="mt-3">
                       {r.custody === "Awaiting Turnover" ? (
-                        <Button onClick={() => onReceipt(r.id)}>
+                        <Button
+                          className="osa-turnover-action"
+                          onClick={() => onReceipt(r.id)}
+                        >
                           Record receipt
                         </Button>
                       ) : (
-                        <Button variant="text" onClick={() => onView(r.id)}>
+                        <Button
+                          variant="text"
+                          className="osa-turnover-action"
+                          onClick={() => onView(r.id)}
+                        >
                           Review report →
                         </Button>
                       )}

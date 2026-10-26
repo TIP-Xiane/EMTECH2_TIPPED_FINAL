@@ -6,11 +6,11 @@ import { useReports } from "../../context/ReportContext";
 export default function ReceiptDialog({ report, onClose, onSuccess }) {
   const { act } = useReports(),
     [error, setError] = useState("");
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     const v = Object.fromEntries(new FormData(e.currentTarget));
     try {
-      act("RECEIVE", {
+      await act("RECEIVE", {
         reportId: report.id,
         office: v.office,
         staff: v.staff,

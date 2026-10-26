@@ -1,34 +1,36 @@
 import { today } from "../utils/format.js";
-export const DEMO_USERS = [
-  {
-    id: "student-alex",
-    name: "Alex · demo student",
-    email: "student@example.invalid",
-    password: "DemoStudent2026",
-    role: "student",
-    number: "Demo account A",
-    program: "Engineering · sample program",
-    site: "Arlegui",
-  },
-  {
-    id: "student-bea",
-    name: "Bea · demo student",
-    email: "bea@example.invalid",
-    password: "DemoStudent2026",
-    role: "student",
-    number: "Demo account B",
-    program: "Computing · sample program",
-    site: "Casal",
-  },
-  {
-    id: "osa-reviewer",
-    name: "OSA demo reviewer",
-    email: "osa@example.invalid",
-    password: "DemoOSA2026",
-    role: "osa",
-    sites: ["Arlegui", "Casal", "Other"],
-  },
-];
+export const DEMO_USERS = import.meta.env?.PROD
+  ? []
+  : [
+      {
+        id: "student-alex",
+        name: "Alex · demo student",
+        email: "student@example.invalid",
+        password: "DemoStudent2026",
+        role: "student",
+        number: "Demo account A",
+        program: "Engineering · sample program",
+        site: "Arlegui",
+      },
+      {
+        id: "student-bea",
+        name: "Bea · demo student",
+        email: "bea@example.invalid",
+        password: "DemoStudent2026",
+        role: "student",
+        number: "Demo account B",
+        program: "Computing · sample program",
+        site: "Casal",
+      },
+      {
+        id: "osa-reviewer",
+        name: "OSA demo reviewer",
+        email: "osa@example.invalid",
+        password: "DemoOSA2026",
+        role: "osa",
+        sites: ["Arlegui", "Casal", "Other"],
+      },
+    ];
 export function createMockData() {
   const createdAt = new Date().toISOString(),
     expiresAt = new Date(Date.now() + 4 * 86400000).toISOString();
@@ -228,6 +230,7 @@ export function createMockData() {
         recipientId: "osa-reviewer",
         reportId: "TIP-0005",
         message: "Graphing calculator is awaiting OSA review.",
+        type: "report_review",
         at: createdAt,
         read: false,
       },

@@ -43,15 +43,68 @@ async function fillReport(page, type = "Found", reporter = "visitor") {
   }
 }
 
+async function enterOSA(page) {
+  await page.goto("/login");
+  await page.getByText("Demo account details").click();
+  await page.getByRole("button", { name: "Use OSA demo reviewer" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+}
+
 test("public dashboard searches real fields and works on narrow screens without a login", async ({
   page,
 }) => {
   await page.goto("/");
+  await expect(page.locator(".public-header-actions .btn")).toHaveCSS(
+    "background-color",
+    "rgb(42, 65, 75)",
+  );
   await expect(page).toHaveURL(/\/home$/);
   await expect(
-    page.getByRole("heading", { name: /Find what matters/ }),
+    page.getByRole("heading", { name: "What do you need today?" }),
   ).toBeVisible();
-  await page.getByLabel("Search campus reports").fill("TIP-0001");
+  await expect(
+    page.getByRole("heading", { name: "Find an item", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "I lost something" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "I found something" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "I lost something" })).toHaveCSS(
+    "background-color",
+    "rgb(255, 245, 229)",
+  );
+  await expect(page.getByRole("link", { name: "I found something" })).toHaveCSS(
+    "background-color",
+    "rgb(232, 244, 242)",
+  );
+  await expect(
+    page.locator(".public-dashboard .public-search button"),
+  ).toHaveCSS("background-color", "rgb(240, 190, 36)");
+  await expect(page.locator(".public-type.is-found").first()).toHaveCSS(
+    "background-color",
+    "rgb(226, 241, 238)",
+  );
+  await expect(page.locator(".public-type.is-lost").first()).toHaveCSS(
+    "background-color",
+    "rgb(255, 242, 220)",
+  );
+  await expect(
+    page.getByRole("link", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Menu" }).click();
+  const navigation = page.getByRole("navigation", {
+    name: "Student and visitor navigation",
+  });
+  await expect(
+    navigation.getByRole("link", { name: "Find an item" }),
+  ).toBeVisible();
+  await navigation.getByRole("link", { name: "Find an item" }).click();
+  await expect(page).toHaveURL(/\/browse$/);
+  await page.goto("/home");
+  await page.getByLabel("Find a reported item").fill("TIP-0001");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByRole("article")).toHaveCount(1);
   await page.getByLabel("Search reports").fill("NOT-A-MATCH");
@@ -70,9 +123,24 @@ test("public dashboard searches real fields and works on narrow screens without 
   await page.keyboard.press("Escape");
   await page.goto("/browse?type=Found");
   await expect(page.getByLabel("Report type")).toHaveValue("Found");
+  await expect(page.getByRole("button", { name: "Reset filters" })).toHaveCSS(
+    "color",
+    "rgb(37, 53, 64)",
+  );
+  await expect(
+    page.locator(".public-card .public-type.is-found").first(),
+  ).toHaveCSS("background-color", "rgb(226, 241, 238)");
   await expect(
     page.locator(".public-type").filter({ hasText: "Lost item" }),
   ).toHaveCount(0);
+  await page.getByRole("button", { name: "Reset filters" }).click();
+  await expect(page.getByLabel("Report type")).toHaveValue("");
+  await expect(
+    page.locator(".public-card .public-type.is-lost").first(),
+  ).toHaveCSS("background-color", "rgb(255, 242, 220)");
+  await expect(
+    page.locator(".public-card .public-type.is-found").first(),
+  ).toHaveCSS("background-color", "rgb(226, 241, 238)");
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const route of ["/home", "/browse", "/report", "/my-reports"]) {
@@ -92,14 +160,14 @@ test("visitor review preserves edits and confirmed reports persist privately wit
   browser,
 }) => {
   await fillReport(page);
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(page.getByRole("dialog")).toContainText("Fictional Reporter");
   await expect(page.getByRole("dialog")).toContainText("Casal");
   await page.getByRole("button", { name: "Back to edit" }).click();
   await expect(page.getByLabel("Item title")).toHaveValue(
     "Visitor found notebook",
   );
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await page.getByRole("button", { name: "Confirm and submit" }).click();
   await expect(
     page.getByRole("heading", { name: "Report received" }),
@@ -155,8 +223,22 @@ test("affiliate form validates phone, changes location safely, and never needs a
   page,
 }) => {
   await fillReport(page, "Lost", "affiliate");
+  await expect(page.locator(".public-step > span").first()).toHaveCSS(
+    "background-color",
+    "rgb(255, 244, 208)",
+  );
+  await expect(
+    page.locator(".report-step-navigation a span").first(),
+  ).toHaveCSS("background-color", "rgb(255, 244, 208)");
+  await expect(page.locator(".public-aside-mark")).toHaveCSS(
+    "background-color",
+    "rgb(240, 190, 36)",
+  );
+  await expect(
+    page.getByRole("button", { name: "Review & submit →" }),
+  ).toHaveCSS("background-color", "rgb(240, 190, 36)");
   await page.getByLabel("Contact number").fill("123");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(
     page.getByText("Enter an 11-digit contact number."),
   ).toBeVisible();
@@ -169,7 +251,7 @@ test("affiliate form validates phone, changes location safely, and never needs a
   await page.getByLabel("Building").selectOption("Building A");
   await page.getByLabel("Floor").selectOption("2nd Floor");
   await page.getByLabel("Last seen at").fill("Demo corridor");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await page.getByRole("button", { name: "Confirm and submit" }).click();
   await expect(
     page.getByRole("heading", { name: "Report received" }),
@@ -185,7 +267,7 @@ test("lost and found reports accept specified outside locations and reach OSA re
     await page.getByLabel("Campus", { exact: false }).selectOption("Other");
     await expect(page.getByLabel("Building")).toHaveCount(0);
     await expect(page.getByLabel("Floor", { exact: false })).toHaveCount(0);
-    await page.getByRole("button", { name: "Review report" }).click();
+    await page.getByRole("button", { name: "Review & submit" }).click();
     await expect(
       page.getByText(
         "Specify the place or address outside the listed campuses.",
@@ -194,7 +276,7 @@ test("lost and found reports accept specified outside locations and reach OSA re
     await page
       .getByLabel("Specify location")
       .fill(`Demo ${type.toLowerCase()} bus stop, sample street`);
-    await page.getByRole("button", { name: "Review report" }).click();
+    await page.getByRole("button", { name: "Review & submit" }).click();
     await expect(page.getByRole("dialog")).toContainText(
       `Demo ${type.toLowerCase()} bus stop`,
     );
@@ -208,10 +290,7 @@ test("lost and found reports accept specified outside locations and reach OSA re
     ).toContainText(`Demo ${type.toLowerCase()} bus stop`);
   }
   const osa = await context.newPage();
-  await osa.goto("/login");
-  await osa
-    .getByRole("button", { name: "Open OSA account", exact: true })
-    .click();
+  await enterOSA(osa);
   await osa.getByRole("link", { name: "Report Review", exact: true }).click();
   await osa.getByLabel("Review site").selectOption("Other");
   for (const type of ["Lost", "Found"]) {
@@ -230,14 +309,14 @@ test("unlisted buildings and floors can be specified; OSA shares the public them
 }) => {
   await fillReport(page);
   await page.getByLabel("Building").selectOption("Other");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(
     page.getByText("Specify the building or outdoor area."),
   ).toBeVisible();
   await page
     .getByLabel("Specify building or area")
     .fill("Demo outdoor courtyard");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(page.getByRole("dialog")).toContainText(
     "Demo outdoor courtyard",
   );
@@ -248,23 +327,25 @@ test("unlisted buildings and floors can be specified; OSA shares the public them
   await page
     .getByLabel("Floor", { exact: false })
     .selectOption("Other / specify");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(page.getByText("Specify the floor or level.")).toBeVisible();
   await page.getByLabel("Specify floor or level").fill("Demo mezzanine");
-  await page.getByRole("button", { name: "Review report" }).click();
+  await page.getByRole("button", { name: "Review & submit" }).click();
   await expect(page.getByRole("dialog")).toContainText("Demo mezzanine");
   await page.getByRole("button", { name: "Back to edit" }).click();
-  await page.goto("/login");
-  await page
-    .getByRole("button", { name: "Open OSA account", exact: true })
-    .click();
+  await enterOSA(page);
+  await page.goto("/osa/reports");
   await expect(page.getByRole("banner")).toHaveCSS(
     "background-color",
-    "rgb(25, 30, 38)",
+    "rgb(29, 48, 59)",
   );
   await expect(page.locator(".osa-nav-active")).toHaveCSS(
     "background-color",
-    "rgb(244, 203, 34)",
+    "rgb(240, 190, 36)",
+  );
+  await expect(page.locator(".status-pending").first()).toHaveCSS(
+    "background-color",
+    "rgb(255, 242, 216)",
   );
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -275,12 +356,12 @@ test("unlisted buildings and floors can be specified; OSA shares the public them
     ).toBeTruthy();
   }
   await page.screenshot({
-    path: "artifacts/osa-yellow-black-desktop.png",
+    path: "artifacts/osa-professional-desktop.png",
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
-    path: "artifacts/osa-yellow-black-mobile.png",
+    path: "artifacts/osa-professional-mobile.png",
     fullPage: true,
   });
 });

@@ -10,11 +10,15 @@ export default function ClaimDialog({ report, onClose, onSuccess }) {
     [evidence, setEvidence] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     setError("");
     try {
-      const id = act("CLAIM", { reportId: report.id, explanation, evidence });
+      const id = await act("CLAIM", {
+        reportId: report.id,
+        explanation,
+        evidence,
+      });
       onSuccess(`Claim ${id} submitted · Pending Review`);
       onClose();
     } catch (err) {

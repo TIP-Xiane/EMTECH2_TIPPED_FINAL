@@ -34,14 +34,14 @@ export default function ReportItem() {
     setValues((v) => ({ ...v, [key]: value }));
     setErrors((e) => ({ ...e, [key]: "" }));
   };
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     if (busy || submitted) return;
     const failure = validateReport(values, reports, user);
     setErrors(failure);
     if (Object.keys(failure).length) return;
     try {
-      const id = act("SUBMIT", values);
+      const id = await act("SUBMIT", values);
       setSubmitted(id);
     } catch (err) {
       setErrors({ form: err.message });

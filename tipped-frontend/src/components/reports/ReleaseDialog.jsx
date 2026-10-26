@@ -11,11 +11,11 @@ export default function ReleaseDialog({ claim, report, onClose, onSuccess }) {
     <ConfirmDialog title="Confirm physical handover" onClose={onClose}>
       <form
         className="space-y-4"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const v = Object.fromEntries(new FormData(e.currentTarget));
           try {
-            act("RELEASE", {
+            await act("RELEASE", {
               reportId: report.id,
               claimId: claim.id,
               date: v.date,

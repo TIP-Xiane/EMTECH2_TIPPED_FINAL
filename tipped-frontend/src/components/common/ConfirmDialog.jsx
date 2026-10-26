@@ -1,6 +1,12 @@
 import { useEffect, useId, useRef } from "react";
 import { Button } from "./UI";
-export default function ConfirmDialog({ title, children, onClose, actions }) {
+export default function ConfirmDialog({
+  title,
+  children,
+  onClose,
+  actions,
+  className = "",
+}) {
   const ref = useRef(null),
     titleId = useId();
   useEffect(() => {
@@ -25,13 +31,18 @@ export default function ConfirmDialog({ title, children, onClose, actions }) {
             onClose();
         }
       }}
-      className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg border border-line bg-white p-5 text-ink backdrop:bg-slate-900/50 sm:p-7"
+      className={`fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg border border-line bg-white p-5 text-ink backdrop:bg-slate-900/50 sm:p-7 ${className}`}
     >
       <div className="mb-5 flex items-start justify-between gap-3">
         <h2 id={titleId} className="text-xl font-bold">
           {title}
         </h2>
-        <Button variant="text" aria-label="Close dialog" onClick={onClose}>
+        <Button
+          variant="text"
+          className="dialog-close-button"
+          aria-label="Close dialog"
+          onClick={onClose}
+        >
           ×
         </Button>
       </div>

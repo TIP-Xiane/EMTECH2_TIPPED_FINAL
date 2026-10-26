@@ -35,16 +35,18 @@ export function applyAction(
       actorName: user.name,
       at,
     });
-  const notify = (recipientId, r, message) =>
+  const notify = (recipientId, r, message, type) =>
     state.notifications.unshift({
       id: makeId("NT"),
       recipientId,
       reportId: r.id,
       message,
+      type,
       at,
       read: false,
     });
-  const notifyOSA = (r, message) => notify("osa-reviewer", r, message);
+  const notifyOSA = (r, message, type) =>
+    notify("osa-reviewer", r, message, type);
   let result;
   switch (action.type) {
     case "SUBMIT": {
@@ -88,6 +90,7 @@ export function applyAction(
       notifyOSA(
         r,
         `New ${r.type.toLowerCase()} report: ${r.title} (${r.site}). Waiting for review.`,
+        "report_review",
       );
       result = r.id;
       break;
@@ -127,6 +130,7 @@ export function applyAction(
         report.reporterId,
         report,
         `OSA marked ${report.title} ${payload.status}.${report.reason ? " Reason: " + report.reason : ""}`,
+        "report_update",
       );
       break;
     }
@@ -179,6 +183,7 @@ export function applyAction(
         report.reporterId,
         report,
         `Physical receipt acknowledged for ${report.title} at ${payload.office.trim()}.`,
+        "custody_update",
       );
       break;
     }
@@ -216,11 +221,13 @@ export function applyAction(
       notifyOSA(
         report,
         `Ownership claim ${c.id} needs review for ${report.title}.`,
+        "claim_review",
       );
       notify(
         user.id,
         report,
         `Your ownership claim ${c.id} is Pending Review.`,
+        "claim_update",
       );
       result = c.id;
       break;
@@ -275,7 +282,12 @@ export function applyAction(
         `${c.id}: ${c.remarks}`,
         true,
       );
-      notify(c.claimantId, report, `Claim ${c.id}: ${c.status}. ${c.remarks}`);
+      notify(
+        c.claimantId,
+        report,
+        `Claim ${c.id}: ${c.status}. ${c.remarks}`,
+        "claim_update",
+      );
       break;
     }
     case "RELEASE": {
@@ -319,6 +331,7 @@ export function applyAction(
         c.claimantId,
         report,
         `${report.title} returned. Physical release recorded.`,
+        "custody_update",
       );
       state.claims
         .filter(
@@ -332,6 +345,7 @@ export function applyAction(
             other.claimantId,
             report,
             `Claim ${other.id} closed: ${other.remarks}`,
+            "claim_update",
           );
           event(report, "Competing claim closed", other.id, true);
         });
@@ -349,14 +363,24 @@ export function applyAction(
       );
       report.outcome = "Recovered";
       event(report, "Reporter confirmed recovery");
-      notifyOSA(
-        report,
-        `${report.title} was marked Recovered by its reporter.`,
-      );
       break;
     case "READ_NOTIFICATIONS":
       state.notifications.forEach((n) => {
-        if (n.recipientId === user.id) n.read = true;
+        const notificationReport = state.reports.find(
+          (item) => item.id === n.reportId,
+        );
+        if (
+          (n.recipientId === user.id &&
+            (user.role !== "osa" ||
+              (notificationReport &&
+                osaCanAccess(user, notificationReport)))) ||
+          (user.role === "osa" &&
+            n.recipientId === "osa-reviewer" &&
+            notificationReport &&
+            osaCanAccess(user, notificationReport))
+        ) {
+          n.read = true;
+        }
       });
       break;
     default:

@@ -2,126 +2,240 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { DEMO_USERS } from "../../data/mockData";
-import { Button, PageHeading } from "../../components/common/UI";
+import { Button } from "../../components/common/UI";
 import FormField from "../../components/forms/FormField";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { API_MODE, apiRequest } from "../../api/client";
+
 export default function Login() {
-  const { user, login, preview } = useAuth(),
+  const { user, login, guestLogin } = useAuth(),
     navigate = useNavigate(),
+    [role, setRole] = useState("student"),
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [error, setError] = useState(""),
     [reset, setReset] = useState(false),
-    [sent, setSent] = useState(false);
-  if (user)
+    [resetMessage, setResetMessage] = useState(""),
+    [resetError, setResetError] = useState(""),
+    [verificationMessage, setVerificationMessage] = useState("");
+
+  if (user && user.role !== "guest")
     return <Navigate to={user.role === "osa" ? "/osa" : "/home"} replace />;
-  function enter(id) {
-    preview(id);
-    navigate(id === "osa-reviewer" ? "/osa" : "/home");
+
+  function fillAccount(account) {
+    setRole(account.role);
+    setEmail(account.email);
+    setPassword(account.password);
+    setError("");
   }
+
   return (
-    <div className="mx-auto max-w-[540px]">
-      <PageHeading title="Sign in to TIPPED">
-        Student reporting and OSA review · Front-end demonstration only.
-      </PageHeading>
-      <div className="panel">
+    <div className="login-page">
+      <section className="login-card" aria-labelledby="login-title">
+        <div className="login-heading">
+          <h1 id="login-title">Sign in</h1>
+          <p>Choose your account type to continue.</p>
+        </div>
+
+        <fieldset className="login-role-picker">
+          <legend>Sign in as</legend>
+          <div className="login-role-options">
+            <label className={role === "student" ? "selected" : ""}>
+              <input
+                type="radio"
+                name="account-type"
+                value="student"
+                checked={role === "student"}
+                onChange={() => {
+                  setRole("student");
+                  setError("");
+                }}
+              />
+              <span>Student</span>
+            </label>
+            <label className={role === "osa" ? "selected" : ""}>
+              <input
+                type="radio"
+                name="account-type"
+                value="osa"
+                checked={role === "osa"}
+                onChange={() => {
+                  setRole("osa");
+                  setError("");
+                }}
+              />
+              <span>OSA administrator</span>
+            </label>
+          </div>
+        </fieldset>
+
         <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
+          className="login-form"
+          onSubmit={async (event) => {
+            event.preventDefault();
             try {
-              login(email, password);
+              await login(email, password, role);
             } catch (err) {
               setError(err.message);
             }
           }}
         >
           <FormField
-            label="Demo account identifier"
+            label="Account email"
+            type="email"
             autoComplete="username"
             required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
           />
           <FormField
-            label="Demo password"
+            label="Password"
             type="password"
             autoComplete="current-password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
           />
           {error && (
-            <p role="alert" className="text-rose-800">
+            <p role="alert" className="login-error">
               {error}
             </p>
           )}
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit">Sign in</Button>
-            <Button
-              variant="text"
-              onClick={() => {
-                setReset(true);
-                setSent(false);
-              }}
-            >
-              Forgot password?
-            </Button>
-          </div>
+          <Button type="submit" className="login-submit">
+            Sign in
+          </Button>
         </form>
-        <p className="notice my-5">
-          Public preview credentials only. Direct role switching is not secure
-          authentication. Do not use real personal details.
-        </p>
-        <h2 className="mb-4 font-bold">Choose a demonstration account</h2>
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={() => enter("student-alex")}>
-            Open Student account
-          </Button>
-          <Button onClick={() => enter("osa-reviewer")}>
-            Open OSA account
-          </Button>
-          <Button variant="secondary" onClick={() => enter("student-bea")}>
-            Second student (Bea)
-          </Button>
-        </div>
-        <dl className="my-5 space-y-4 text-xs leading-6">
-          {DEMO_USERS.map((u) => (
-            <div key={u.id}>
-              <dt className="font-semibold">{u.name}</dt>
-              <dd className="break-all text-muted">
-                {u.email}
-                <br />
-                {u.password}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <Link className="text-burgundy underline" to="/register">
-          Create a demo student profile
-        </Link>
-        <p className="mt-3 text-xs text-muted">No public OSA registration.</p>
-      </div>
-      {reset && (
-        <ConfirmDialog
-          title="Password reset preview"
-          onClose={() => setReset(false)}
+
+        <button
+          type="button"
+          className="login-text-button"
+          onClick={() => {
+            setReset(true);
+            setResetMessage("");
+            setResetError("");
+          }}
         >
-          {sent ? (
-            <p role="status">Preview completed. No email was sent.</p>
-          ) : (
+          Forgot password?
+        </button>
+        {API_MODE && (
+          <button
+            type="button"
+            className="login-text-button"
+            onClick={async () => {
+              setVerificationMessage("");
+              setError("");
+              try {
+                const result = await apiRequest("/auth/resend-verification", {
+                  method: "POST",
+                  body: JSON.stringify({ email }),
+                });
+                setVerificationMessage(result.message);
+              } catch (err) {
+                setError(err.message);
+              }
+            }}
+          >
+            Resend verification email
+          </button>
+        )}
+        {verificationMessage && <p role="status">{verificationMessage}</p>}
+
+        <div className="login-divider">
+          <span>or</span>
+        </div>
+        <Button
+          variant="secondary"
+          className="login-guest"
+          onClick={async () => {
+            setError("");
+            try {
+              await guestLogin();
+              navigate("/home");
+            } catch (err) {
+              setError(err.message);
+            }
+          }}
+        >
+          Continue as guest
+        </Button>
+        <p className="login-guest-hint">
+          Browse and report without an account.
+        </p>
+
+        {!API_MODE && (
+          <details className="login-demo">
+            <summary>Demo account details</summary>
+            <div className="login-demo-list">
+              {DEMO_USERS.map((account) => (
+                <div className="login-demo-account" key={account.id}>
+                  <div>
+                    <strong>
+                      {account.role === "osa"
+                        ? "OSA administrator"
+                        : account.id === "student-alex"
+                          ? "Student"
+                          : "Second student"}
+                    </strong>
+                    <p>{account.email}</p>
+                    <p>Password: {account.password}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fillAccount(account)}
+                    aria-label={`Use ${account.name}`}
+                  >
+                    Use account
+                  </button>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
+        <p className="login-register">
+          New student? <Link to="/register">Create an account</Link>
+        </p>
+      </section>
+
+      {reset && (
+        <ConfirmDialog title="Reset password" onClose={() => setReset(false)}>
+          {API_MODE ? (
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSent(true);
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setResetError("");
+                setResetMessage("");
+                try {
+                  const result = await apiRequest(
+                    "/auth/password-reset/request",
+                    {
+                      method: "POST",
+                      body: JSON.stringify({ email }),
+                    },
+                  );
+                  setResetMessage(result.message);
+                } catch (err) {
+                  setResetError(err.message);
+                }
               }}
             >
-              <FormField label="Account identifier" required />
-              <p className="notice my-4">
-                This demonstrates the interface only.
+              <p>
+                Enter your account email. If an account exists, we will send a
+                reset link.
               </p>
-              <Button type="submit">Preview request</Button>
+              <FormField
+                label="Account email"
+                type="email"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+              {resetError && <p role="alert">{resetError}</p>}
+              {resetMessage && <p role="status">{resetMessage}</p>}
+              <Button type="submit">Send reset link</Button>
             </form>
+          ) : (
+            <p>Password reset is available after backend setup.</p>
           )}
         </ConfirmDialog>
       )}

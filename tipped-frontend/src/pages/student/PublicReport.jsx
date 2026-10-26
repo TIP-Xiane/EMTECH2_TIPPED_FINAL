@@ -51,7 +51,7 @@ export default function PublicReport() {
     validDays: 4,
   });
   const [person, setPerson] = useState({
-    type: user ? "affiliate" : "",
+    type: user?.role === "guest" ? "visitor" : user ? "affiliate" : "",
     name: user?.name || "",
     phone: "",
     email: user?.email || "",
@@ -167,11 +167,11 @@ export default function PublicReport() {
     }
     setReview(true);
   }
-  function save() {
+  async function save() {
     if (submitted.current) return;
     submitted.current = true;
     try {
-      const id = act("SUBMIT", payload);
+      const id = await act("SUBMIT", payload);
       setSaved(id);
       setReview(false);
     } catch (err) {
@@ -214,15 +214,25 @@ export default function PublicReport() {
         ← Back to dashboard
       </Link>
       <PageHeading
-        eyebrow="A LITTLE DETAIL GOES A LONG WAY"
+        eyebrow="REPORT AN ITEM"
         title={v.type === "Lost" ? "Report a lost item" : "Report a found item"}
       >
-        Tell us about the item. OSA will review your report before it appears
-        publicly.
+        Add a few details so OSA can review your report.
       </PageHeading>
+      <nav className="report-step-navigation" aria-label="Report steps">
+        <a href="#report-item">
+          <span>1</span> About the item
+        </a>
+        <a href="#report-location">
+          <span>2</span> Place and time
+        </a>
+        <a href="#report-contact">
+          <span>3</span> Your details
+        </a>
+      </nav>
       <div className="public-form-layout">
         <form ref={formRef} noValidate onSubmit={check} className="public-form">
-          <section>
+          <section id="report-item">
             <div className="public-step">
               <span>01</span>
               <div>
@@ -269,7 +279,7 @@ export default function PublicReport() {
               />
             </div>
           </section>
-          <section>
+          <section id="report-location">
             <div className="public-step">
               <span>02</span>
               <div>
@@ -361,7 +371,7 @@ export default function PublicReport() {
               )}
             </div>
           </section>
-          <section>
+          <section id="report-contact">
             <div className="public-step">
               <span>03</span>
               <div>
@@ -475,8 +485,7 @@ export default function PublicReport() {
               </div>
             </details>
             <p className="mt-5 text-xs leading-6 text-muted">
-              Review your details before sending. Submitted reports cannot be
-              edited here.
+              You can review everything before submitting.
             </p>
             {Object.values(errors).some(Boolean) && (
               <p className="my-3 text-sm text-rose-800" role="alert">
@@ -485,7 +494,7 @@ export default function PublicReport() {
             )}
             <div className="mt-4 flex flex-wrap gap-3">
               <Button type="submit" disabled={busy || !!saved}>
-                {busy ? "Reading photograph…" : "Review report →"}
+                {busy ? "Reading photograph…" : "Review & submit →"}
               </Button>
               <Link className="btn btn-secondary" to="/home">
                 Cancel

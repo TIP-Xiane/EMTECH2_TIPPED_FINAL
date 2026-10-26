@@ -13,7 +13,7 @@ export default function Registry({
       </EmptyState>
     );
   return (
-    <div className="overflow-hidden rounded border border-line">
+    <div className="report-registry overflow-hidden rounded border border-line">
       {reports.map((r) => (
         <ReportRow
           key={r.id}

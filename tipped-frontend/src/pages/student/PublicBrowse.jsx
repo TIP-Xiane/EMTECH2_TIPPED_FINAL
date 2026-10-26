@@ -113,7 +113,7 @@ export default function PublicBrowse({ reports, user, onView }) {
         <p className="text-sm text-muted" role="status">
           {results.length} {results.length === 1 ? "report" : "reports"} found
         </p>
-        <Button variant="text" onClick={reset}>
+        <Button className="public-reset-filters" variant="text" onClick={reset}>
           Reset filters
         </Button>
       </div>

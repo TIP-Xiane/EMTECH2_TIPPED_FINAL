@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import NotificationButton from "../notifications/NotificationButton";
 export default function PublicNavbar({
@@ -5,8 +6,8 @@ export default function PublicNavbar({
   unread,
   onNotifications,
   onSignOut,
-  onSwitch,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <header className="public-header">
       <div className="public-header-inner">
@@ -16,14 +17,27 @@ export default function PublicNavbar({
             TIPPED<small>LOST & FOUND</small>
           </span>
         </Link>
-        <nav aria-label="Student and visitor navigation">
+        <button
+          className="public-menu-toggle"
+          type="button"
+          aria-expanded={menuOpen}
+          aria-controls="public-navigation"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? "Close menu" : "Menu"}
+        </button>
+        <nav
+          id="public-navigation"
+          aria-label="Student and visitor navigation"
+          className={menuOpen ? "public-navigation-open" : ""}
+        >
           {[
-            ["/home", "Dashboard"],
+            ["/home", "Home"],
             ["/browse", "Find an item"],
             ["/report", "Report an item"],
             ["/my-reports", "My Reports"],
           ].map(([path, label]) => (
-            <NavLink key={path} to={path}>
+            <NavLink key={path} to={path} onClick={() => setMenuOpen(false)}>
               {label}
             </NavLink>
           ))}
@@ -32,24 +46,18 @@ export default function PublicNavbar({
           <NotificationButton unread={unread} onClick={onNotifications} />
           {user ? (
             <>
-              <button onClick={onSwitch}>OSA account</button>
               <Link to="/profile">Profile</Link>
               <button onClick={onSignOut}>Sign out</button>
             </>
           ) : (
-            <Link to="/login">Staff / demo sign in ↗</Link>
+            <Link to="/login">Sign in</Link>
           )}
         </div>
       </div>
     </header>
   );
 }
-export function WorkspaceNavbar({
-  unread,
-  onNotifications,
-  onSwitch,
-  onSignOut,
-}) {
+export function WorkspaceNavbar({ unread, onNotifications, onSignOut }) {
   return (
     <header className="public-header">
       <div className="public-header-inner osa-header-inner">
@@ -62,7 +70,6 @@ export function WorkspaceNavbar({
         <span className="osa-workspace-label">OSA workspace</span>
         <div className="public-header-actions">
           <NotificationButton unread={unread} onClick={onNotifications} />
-          <button onClick={onSwitch}>Student account</button>
           <button onClick={onSignOut}>Sign out</button>
         </div>
       </div>

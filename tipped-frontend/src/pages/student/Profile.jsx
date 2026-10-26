@@ -3,14 +3,18 @@ import { useAuth } from "../../context/AuthContext";
 import { Button, PageHeading } from "../../components/common/UI";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import FormField from "../../components/forms/FormField";
+import { API_MODE, apiRequest } from "../../api/client";
 export default function Profile() {
   const { user } = useAuth(),
     [reset, setReset] = useState(false),
-    [sent, setSent] = useState(false);
+    [sent, setSent] = useState(false),
+    [error, setError] = useState("");
   return (
     <div className="mx-auto max-w-[760px]">
       <PageHeading title={user.role === "osa" ? "OSA account" : "My profile"}>
-        Demonstration identity. Institutional verification is not connected.
+        {API_MODE
+          ? "Your account details and assigned access."
+          : "Demonstration identity. Institutional verification is not connected."}
       </PageHeading>
       <div className="panel">
         <h2 className="text-xl font-bold">{user.name}</h2>
@@ -32,9 +36,9 @@ export default function Profile() {
           ))}
         </dl>
         <p className="notice">
-          Official account provisioning, brand assets, receiving offices,
-          verification criteria and retention policies require stakeholder
-          confirmation. No official logo or deployment is asserted.
+          {API_MODE
+            ? "Contact OSA if your account details or assigned access need to change."
+            : "Official account provisioning, brand assets, receiving offices, verification criteria and retention policies require stakeholder confirmation. No official logo or deployment is asserted."}
         </p>
         <Button
           variant="secondary"
@@ -42,23 +46,40 @@ export default function Profile() {
           onClick={() => {
             setReset(true);
             setSent(false);
+            setError("");
           }}
         >
-          Password reset preview
+          {API_MODE ? "Request password reset" : "Password reset preview"}
         </Button>
       </div>
       {reset && (
         <ConfirmDialog
-          title="Password reset preview"
+          title={API_MODE ? "Request password reset" : "Password reset preview"}
           onClose={() => setReset(false)}
         >
           {sent ? (
-            <p role="status">Preview request completed. No email was sent.</p>
+            <p role="status">
+              {API_MODE
+                ? "If an active account exists, a reset email will be sent."
+                : "Preview request completed. No email was sent."}
+            </p>
           ) : (
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setSent(true);
+                if (!API_MODE) {
+                  setSent(true);
+                  return;
+                }
+                try {
+                  await apiRequest("/auth/password-reset/request", {
+                    method: "POST",
+                    body: JSON.stringify({ email: user.email }),
+                  });
+                  setSent(true);
+                } catch (error) {
+                  setError(error.message);
+                }
               }}
             >
               <FormField
@@ -67,8 +88,17 @@ export default function Profile() {
                 required
                 defaultValue={user.email}
               />
-              <p className="notice my-4">No email service is connected.</p>
-              <Button type="submit">Preview reset request</Button>
+              {!API_MODE && (
+                <p className="notice my-4">No email service is connected.</p>
+              )}
+              {error && (
+                <p role="alert" className="my-4 text-rose-800">
+                  {error}
+                </p>
+              )}
+              <Button type="submit">
+                {API_MODE ? "Send reset link" : "Preview reset request"}
+              </Button>
             </form>
           )}
         </ConfirmDialog>

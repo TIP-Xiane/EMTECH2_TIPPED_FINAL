@@ -19,7 +19,7 @@ export default function PublicCards({ reports, onView }) {
           <div className="flex items-center justify-between gap-3">
             <span className="public-reference">{r.id}</span>
             <span
-              className={`public-type ${r.type === "Found" ? "is-found" : ""}`}
+              className={`public-type ${r.type === "Found" ? "is-found" : "is-lost"}`}
             >
               {r.type === "Found" ? "Found item" : "Lost item"}
             </span>

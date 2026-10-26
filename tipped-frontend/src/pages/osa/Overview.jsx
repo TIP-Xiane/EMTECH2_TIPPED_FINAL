@@ -1,61 +1,93 @@
 import { Link } from "react-router-dom";
-import { DashboardCounter, PageHeading } from "../../components/common/UI";
+import { EmptyState, PageHeading } from "../../components/common/UI";
 import CampusSelector from "../../components/forms/CampusSelector";
 import Registry from "../../components/reports/Registry";
 import useOSAScope from "../../hooks/useOSAScope";
+
 export default function Overview({ onView }) {
-  const {
-    scopedReports: rs,
-    scopedClaims,
-    scopedReleases,
-    site,
-    setSite,
-  } = useOSAScope();
+  const { scopedReports, scopedClaims, site, setSite } = useOSAScope();
+  const pendingReports = scopedReports.filter(
+    (report) =>
+      report.moderation === "Pending Review" && report.outcome === "Open",
+  );
+  const pendingClaims = scopedClaims.filter(
+    (claim) => claim.status === "Pending Review",
+  );
+  const awaitingTurnover = scopedReports.filter(
+    (report) =>
+      report.type === "Found" &&
+      report.custody === "Awaiting Turnover" &&
+      report.outcome === "Open",
+  );
+  const tasks = [
+    {
+      count: pendingReports.length,
+      title: "Reports to review",
+      description: "Check details and approve or reject submissions.",
+      path: "/osa/reports",
+      action: "Review reports",
+    },
+    {
+      count: pendingClaims.length,
+      title: "Ownership claims",
+      description: "Review claim details and private evidence.",
+      path: "/osa/claims",
+      action: "Review claims",
+    },
+    {
+      count: awaitingTurnover.length,
+      title: "Items awaiting receipt",
+      description: "Record physical handover to the office.",
+      path: "/osa/turnover",
+      action: "Record receipt",
+    },
+  ];
+  const hasTasks = tasks.some((task) => task.count > 0);
+
   return (
     <>
       <PageHeading
-        eyebrow="OSA WORKSPACE / DEMONSTRATION"
-        title="Campus overview"
+        eyebrow="OSA WORKSPACE"
+        title="Needs attention"
         action={<CampusSelector value={site} onChange={setSite} />}
       >
-        Review reports, verify physical receipt and keep ownership checks
-        separate from release.
+        Your next OSA tasks for this campus.
       </PageHeading>
-      <p className="notice mb-6">
-        Illustrative records only. Your demo reviewer covers Arlegui, Casal, and
-        reports from other locations. Approval controls listing visibility, not
-        custody.
-      </p>
-      <div className="panel mb-7 grid gap-5 sm:grid-cols-2 min-[1100px]:grid-cols-4">
-        {[
-          [
-            "Pending Review",
-            rs.filter(
-              (r) => r.moderation === "Pending Review" && r.outcome === "Open",
-            ).length,
-          ],
-          ["Approved", rs.filter((r) => r.moderation === "Approved").length],
-          [
-            "Claims to verify",
-            scopedClaims.filter((c) => c.status === "Pending Review").length,
-          ],
-          ["Returned items", scopedReleases.length],
-        ].map(([label, value]) => (
-          <DashboardCounter key={label} label={label} value={value} />
-        ))}
-      </div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">Submission review queue</h2>
-        <Link to="/osa/reports" className="btn btn-text">
-          All reports →
-        </Link>
-      </div>
-      <Registry
-        reports={rs.filter(
-          (r) => r.moderation === "Pending Review" && r.outcome === "Open",
-        )}
-        onView={onView}
-      />
+
+      {hasTasks ? (
+        <section className="osa-task-list" aria-label="OSA tasks">
+          {tasks.map((task) => (
+            <article className="osa-task-card" key={task.path}>
+              <span
+                className="osa-task-count"
+                aria-label={`${task.count} ${task.count === 1 ? "task" : "tasks"}`}
+              >
+                {task.count}
+              </span>
+              <div>
+                <h2>{task.title}</h2>
+                <p>{task.description}</p>
+              </div>
+              <Link to={task.path}>{task.action} →</Link>
+            </article>
+          ))}
+        </section>
+      ) : (
+        <EmptyState title="All caught up">
+          There are no reports, claims, or found items waiting for action at
+          this campus.
+        </EmptyState>
+      )}
+
+      {pendingReports.length > 0 && (
+        <section className="osa-pending-preview">
+          <div className="public-section-heading">
+            <h2>Reports waiting for review</h2>
+            <Link to="/osa/reports">Open full queue →</Link>
+          </div>
+          <Registry reports={pendingReports.slice(0, 4)} onView={onView} />
+        </section>
+      )}
     </>
   );
 }
