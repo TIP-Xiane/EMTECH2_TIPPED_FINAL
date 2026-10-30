@@ -47,3 +47,9 @@ class AccountProfile(models.Model):
     class Meta:
         constraints = [models.CheckConstraint(condition=models.Q(email=models.functions.Lower("email")), name="account_email_lowercase")]
     def __str__(self): return self.email
+
+
+class GoogleIdentity(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="google_identity")
+    subject = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)

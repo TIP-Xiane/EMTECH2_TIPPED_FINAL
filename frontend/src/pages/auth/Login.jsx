@@ -1,83 +1,60 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { DEMO_USERS } from "../../data/mockData";
 import { Button } from "../../components/common/UI";
-import FormField from "../../components/forms/FormField";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
-import { API_MODE, apiRequest } from "../../api/client";
-
+import GoogleSignIn from "../../components/forms/GoogleSignIn";
+const messages = {
+  pending: "Your account is waiting for administrator approval.",
+  failed: "Google sign-in could not be completed. Please try again.",
+  cancelled: "Google sign-in was cancelled.",
+  link_required:
+    "An account already uses this email. Sign in with your TIPPED password, then link Google from your profile.",
+  linked: "Google account linked. You can now continue with Google.",
+  link_failed:
+    "Unable to link Google. Use the same email as your TIPPED account and try again.",
+};
 export default function Login() {
-  const { user, login, guestLogin } = useAuth(),
-    navigate = useNavigate(),
-    [role, setRole] = useState("student"),
-    [email, setEmail] = useState(""),
+  const { user, login } = useAuth();
+  const [params] = useSearchParams();
+  const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [reset, setReset] = useState(false),
-    [resetMessage, setResetMessage] = useState(""),
-    [resetError, setResetError] = useState(""),
-    [verificationMessage, setVerificationMessage] = useState("");
-
-  if (user && user.role !== "guest")
+    [help, setHelp] = useState(false);
+  if (user)
     return <Navigate to={user.role === "osa" ? "/osa" : "/home"} replace />;
-
-  function fillAccount(account) {
-    setRole(account.role);
-    setEmail(account.email);
-    setPassword(account.password);
-    setError("");
-  }
-
   return (
-    <div className="login-page">
-      <section className="login-card" aria-labelledby="login-title">
+    <div className="login-page tipped-access-layout">
+      <section
+        className="login-card tipped-signin-card"
+        aria-labelledby="login-title"
+      >
+        <Link to="/home" className="tipped-card-brand" aria-label="TIPPED home">
+          <span aria-hidden="true">T</span>
+          <strong>
+            TIPPED<small>CAMPUS LOST &amp; FOUND</small>
+          </strong>
+        </Link>
         <div className="login-heading">
-          <h1 id="login-title">Sign in</h1>
-          <p>Choose your account type to continue.</p>
+          <p className="tipped-form-eyebrow">ACCOUNT ACCESS</p>
+          <h1 id="login-title">Welcome back.</h1>
+          <p>Sign in to follow your reports and updates.</p>
         </div>
-
-        <fieldset className="login-role-picker">
-          <legend>Sign in as</legend>
-          <div className="login-role-options">
-            <label className={role === "student" ? "selected" : ""}>
-              <input
-                type="radio"
-                name="account-type"
-                value="student"
-                checked={role === "student"}
-                onChange={() => {
-                  setRole("student");
-                  setError("");
-                }}
-              />
-              <span>Student</span>
-            </label>
-            <label className={role === "osa" ? "selected" : ""}>
-              <input
-                type="radio"
-                name="account-type"
-                value="osa"
-                checked={role === "osa"}
-                onChange={() => {
-                  setRole("osa");
-                  setError("");
-                }}
-              />
-              <span>OSA administrator</span>
-            </label>
-          </div>
-        </fieldset>
-
+        {messages[params.get("google")] && (
+          <p role="status" className="notice my-4">
+            {messages[params.get("google")]}
+          </p>
+        )}
         <form
           className="login-form"
           onSubmit={async (event) => {
             event.preventDefault();
+            if (busy) return;
+            setBusy(true);
+            setError("");
             try {
-              if (busy) return;
-              setBusy(true);
-              await login(email, password, role);
+              await login(email, password, "student");
             } catch (err) {
               setError(err.message);
             } finally {
@@ -85,24 +62,37 @@ export default function Login() {
             }
           }}
         >
-          <FormField
-            label="Account email"
-            type="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          <FormField
-            label="Password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
+          <div className="auth-field">
+            <label htmlFor="login-email">Email address</label>
+            <input
+              id="login-email"
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              aria-describedby={error ? "login-error" : undefined}
+            />
+          </div>
+          <div className="auth-field">
+            <div className="auth-password-label">
+              <label htmlFor="login-password">Password</label>
+              <button type="button" onClick={() => setHelp(true)}>
+                Forgot password?
+              </button>
+            </div>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-describedby={error ? "login-error" : undefined}
+            />
+          </div>
           {error && (
-            <p role="alert" className="login-error">
+            <p id="login-error" role="alert" className="login-error">
               {error}
             </p>
           )}
@@ -110,142 +100,39 @@ export default function Login() {
             {busy ? "Signing in…" : "Sign in"}
           </Button>
         </form>
-
-        <button
-          type="button"
-          className="login-text-button"
-          onClick={() => {
-            setReset(true);
-            setResetMessage("");
-            setResetError("");
-          }}
-        >
-          Forgot password?
-        </button>
-        {false && (
-          <button
-            type="button"
-            className="login-text-button"
-            onClick={async () => {
-              setVerificationMessage("");
-              setError("");
-              try {
-                const result = await apiRequest("/auth/resend-verification", {
-                  method: "POST",
-                  body: JSON.stringify({ email }),
-                });
-                setVerificationMessage(result.message);
-              } catch (err) {
-                setError(err.message);
-              }
-            }}
-          >
-            Resend verification email
-          </button>
-        )}
-        {verificationMessage && <p role="status">{verificationMessage}</p>}
-
         <div className="login-divider">
           <span>or</span>
         </div>
-        <Button
-          variant="secondary"
-          className="login-guest"
-          onClick={async () => {
-            setError("");
-            try {
-              await guestLogin();
-              navigate("/home");
-            } catch (err) {
-              setError(err.message);
-            }
-          }}
-        >
-          Continue as guest
-        </Button>
-        <p className="login-guest-hint">
-          Browse approved listings without an account. Reporting requires
-          sign-in.
-        </p>
-
-        {!API_MODE && (
-          <details className="login-demo">
-            <summary>Demo account details</summary>
-            <div className="login-demo-list">
-              {DEMO_USERS.map((account) => (
-                <div className="login-demo-account" key={account.id}>
-                  <div>
-                    <strong>
-                      {account.role === "osa"
-                        ? "OSA administrator"
-                        : account.id === "student-alex"
-                          ? "Student"
-                          : "Second student"}
-                    </strong>
-                    <p>{account.email}</p>
-                    <p>Password: {account.password}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => fillAccount(account)}
-                    aria-label={`Use ${account.name}`}
-                  >
-                    Use account
-                  </button>
-                </div>
-              ))}
-            </div>
-          </details>
-        )}
-
+        <div className="auth-provider">
+          <GoogleSignIn />
+        </div>
         <p className="login-register">
-          New student? <Link to="/register">Create an account</Link>
+          New to TIPPED? <Link to="/register">Create an account</Link>
+        </p>
+        <p className="auth-admin-link">
+          <a href="/admin/">Administrator panel</a>
         </p>
       </section>
-
-      {reset && (
-        <ConfirmDialog title="Reset password" onClose={() => setReset(false)}>
-          {false ? (
-            <form
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setResetError("");
-                setResetMessage("");
-                try {
-                  const result = await apiRequest(
-                    "/auth/password-reset/request",
-                    {
-                      method: "POST",
-                      body: JSON.stringify({ email }),
-                    },
-                  );
-                  setResetMessage(result.message);
-                } catch (err) {
-                  setResetError(err.message);
-                }
-              }}
-            >
-              <p>
-                Enter your account email. If an account exists, we will send a
-                reset link.
-              </p>
-              <FormField
-                label="Account email"
-                type="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-              {resetError && <p role="alert">{resetError}</p>}
-              {resetMessage && <p role="status">{resetMessage}</p>}
-              <Button type="submit">Send reset link</Button>
-            </form>
-          ) : (
-            <p>
-              Contact the administrator for account activation or password
-              reset. Email reset is not connected yet.
-            </p>
-          )}
+      {help && (
+        <ConfirmDialog
+          title="Password assistance"
+          onClose={() => setHelp(false)}
+        >
+          <p className="text-sm leading-7">
+            Contact your TIPPED administrator to verify your identity and reset
+            your TIPPED password. Email password reset is not available yet.
+          </p>
+          <p className="mt-3 text-sm leading-7">
+            If you registered through Google, use Continue with Google. Never
+            share your Google password with TIPPED.
+          </p>
+          <Button
+            variant="secondary"
+            className="mt-5"
+            onClick={() => setHelp(false)}
+          >
+            Back to sign in
+          </Button>
         </ConfirmDialog>
       )}
     </div>

@@ -30,3 +30,17 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
+
+
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
+GOOGLE_REDIRECT_URI = env("GOOGLE_REDIRECT_URI", default="http://127.0.0.1:5173/api/auth/google/callback/" if DEBUG else "")
+GOOGLE_ALLOWED_DOMAINS = env.list("GOOGLE_ALLOWED_DOMAINS", default=[])
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"oauth_query": {"()": "base.logging_filters.RedactOAuthQuery"}},
+    "handlers": {"server_console": {"class": "logging.StreamHandler", "filters": ["oauth_query"]}},
+    "loggers": {"django.server": {"handlers": ["server_console"], "level": "INFO", "propagate": False}},
+}

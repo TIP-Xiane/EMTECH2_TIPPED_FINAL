@@ -46,7 +46,7 @@ export default function ImageUpload({
         onChange={choose}
       />
       <p id={`${id}-help`} className="text-xs leading-6 text-muted">
-        JPEG, PNG or WebP · At most 5 MB · Use fictional evidence only.
+        JPEG, PNG or WebP · At most 5 MB · Keep private ownership evidence out of public photos.
       </p>
       {error && (
         <p role="alert" className="mt-2 text-xs text-rose-800">

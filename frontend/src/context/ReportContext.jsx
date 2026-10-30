@@ -93,8 +93,7 @@ export function ReportProvider({ children }) {
         setSite,
         storageError,
         stateLoading,
-        apiNotice:
-          "Live Django accounts are enabled. Report submission, claims and OSA website actions are still being integrated.",
+        apiNotice: "",
       }}
     >
       {children}

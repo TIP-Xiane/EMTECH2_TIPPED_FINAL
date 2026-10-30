@@ -34,3 +34,15 @@ class AccountProfileAdmin(admin.ModelAdmin):
         from django.utils.html import format_html
         return format_html('<a href="{}">Review account and Active status</a>', reverse("admin:auth_user_change", args=[obj.user_id]))
     approval_user_link.short_description = "Administrator approval"
+
+
+from .models import GoogleIdentity
+@admin.register(GoogleIdentity)
+class GoogleIdentityAdmin(admin.ModelAdmin):
+    list_display=["user", "created_at"]
+    readonly_fields=["user", "subject", "created_at"]
+    def has_module_permission(self,request): return request.user.is_superuser
+    def has_view_permission(self,request,obj=None): return request.user.is_superuser
+    def has_add_permission(self,request): return False
+    def has_change_permission(self,request,obj=None): return False
+    def has_delete_permission(self,request,obj=None): return False

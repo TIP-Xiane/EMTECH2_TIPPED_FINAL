@@ -45,7 +45,7 @@ export function EmptyState({ title = "No records yet", children, action }) {
 export function LoadingState() {
   return (
     <div role="status" className="p-8 text-muted">
-      Loading the TIPPED preview…
+      Loading TIPPED…
     </div>
   );
 }

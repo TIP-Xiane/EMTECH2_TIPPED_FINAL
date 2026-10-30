@@ -92,10 +92,7 @@ export function PublicFooter({ workspace = false }) {
             ? "OSA · Review, custody & recovery"
             : "Student & visitor lost and found"}
         </p>
-        <small>
-          Local development · Account requests require administrator approval. No SMS or email is
-          sent.
-        </small>
+        <small>Account requests are reviewed before activation.</small>
       </div>
     </footer>
   );

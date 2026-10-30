@@ -112,6 +112,8 @@ class CookieRefreshView(PublicAccountView):
 
 class AccountLogoutView(PublicAccountView):
     def post(self, request):
+        request.session.pop("google_oauth", None)
+        request.session.pop("google_pending", None)
         try: RefreshToken(request.COOKIES.get(COOKIE, "")).blacklist()
         except TokenError: pass
         response = Response(status=204)

@@ -20,3 +20,8 @@ Next implementation milestone: agree on identity eligibility and campus/site map
 
 ## Real account slice - 30 October 2026
 Registration and approved student login now use Django/PostgreSQL. New requests are inactive until manual eligibility approval; duplicate registration does not replace credentials. Browser auth uses CSRF, in-memory access tokens and HttpOnly rotating refresh cookies. No real student accounts were precreated. Demo login/storage is no longer used. OSA website login, Google/verification/reset email and full report mutation integration remain unavailable. Read backend/ACCOUNT_SECURITY.md (ACCOUNT_SECURITY.md from backend) for approval steps and remaining limitations.
+
+## Google integration and live account cleanup - 30 October 2026
+Added Google OAuth state/nonce/PKCE and server-side google-auth validation, explicit account linking, pending Google profile completion and administrator approval. OAuth client credentials have NOT been supplied; Google remains disabled and real-provider verification is pending. Removed demo/dead account UI and global development notices without claiming unfinished OSA/report operations are implemented. See backend/GOOGLE_SIGN_IN_SETUP.md (GOOGLE_SIGN_IN_SETUP.md from backend).
+
+Login design clarification: use a distinct TIPPED navy/gold split campus-introduction and account-form layout. Third-party login screenshots are interaction references only; do not reproduce their branding or product appearance. Authentication behavior and folder structure remain unchanged.

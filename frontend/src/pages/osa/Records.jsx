@@ -9,7 +9,7 @@ export default function Records({ kind, onReceipt, onClaim, onView }) {
   const headings = {
     claims: [
       "Ownership claims",
-      "Private evidence is available only to the appropriate mock reviewer.",
+      "Private evidence is available only to the authorized reviewer.",
     ],
     turnover: [
       "Physical turnover log",
@@ -17,7 +17,7 @@ export default function Records({ kind, onReceipt, onClaim, onView }) {
     ],
     audit: [
       "Audit history",
-      "Local demonstration events; this is not an immutable audit trail.",
+      "Recorded workflow events for this workspace.",
     ],
     releases: [
       "Release records",
@@ -121,7 +121,7 @@ export default function Records({ kind, onReceipt, onClaim, onView }) {
                     <br />
                     Handover: {dateLabel(item.date)} · {item.location}
                     <br />
-                    Authorized demo staff: {item.staffName}
+                    Authorized staff: {item.staffName}
                     <br />
                     Claim reference: {item.claimId}
                   </p>

@@ -92,7 +92,7 @@ export default function Navbar({
           <div className="mx-auto flex max-w-[1260px] flex-wrap justify-between gap-2">
             <span>T.I.P. Manila · Proposed Arlegui & Casal pilot</span>
             <span>
-              Mock records · Verification required · No backend connected
+              Account access is managed by your administrator.
             </span>
           </div>
         </div>

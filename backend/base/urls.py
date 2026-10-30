@@ -3,8 +3,9 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView, TokenBlacklistView
 from .views import ReportViewSet, CampusViewSet, CategoryViewSet, LoginView, health, me
 from .accounts import csrf, RegisterView, AccountLoginView, CookieRefreshView, AccountLogoutView, AccountView
+from .google_auth import ProviderConfig, GoogleStart, GoogleLinkStart, GoogleComplete, callback
 router = DefaultRouter()
 router.register("reports", ReportViewSet, basename="report")
 router.register("campuses", CampusViewSet)
 router.register("categories", CategoryViewSet)
-urlpatterns = [path("api/auth/csrf/", csrf), path("api/auth/register/", RegisterView.as_view()), path("api/auth/login/", AccountLoginView.as_view()), path("api/auth/refresh/", CookieRefreshView.as_view()), path("api/auth/signout/", AccountLogoutView.as_view()), path("api/auth/account/", AccountView.as_view()), path("api/health/", health), path("api/auth/token/", LoginView.as_view()), path("api/auth/token/refresh/", TokenRefreshView.as_view()), path("api/auth/logout/", TokenBlacklistView.as_view()), path("api/auth/me/", me), path("api/session/", include("rest_framework.urls")), path("api/", include(router.urls))]
+urlpatterns = [path("api/auth/providers/", ProviderConfig.as_view()), path("api/auth/google/start/", GoogleStart.as_view()), path("api/auth/google/link/", GoogleLinkStart.as_view()), path("api/auth/google/complete/", GoogleComplete.as_view()), path("api/auth/google/callback/", callback), path("api/auth/csrf/", csrf), path("api/auth/register/", RegisterView.as_view()), path("api/auth/login/", AccountLoginView.as_view()), path("api/auth/refresh/", CookieRefreshView.as_view()), path("api/auth/signout/", AccountLogoutView.as_view()), path("api/auth/account/", AccountView.as_view()), path("api/health/", health), path("api/auth/token/", LoginView.as_view()), path("api/auth/token/refresh/", TokenRefreshView.as_view()), path("api/auth/logout/", TokenBlacklistView.as_view()), path("api/auth/me/", me), path("api/session/", include("rest_framework.urls")), path("api/", include(router.urls))]

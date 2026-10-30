@@ -32,7 +32,7 @@ export default function ReceiptDialog({ report, onClose, onSuccess }) {
       </p>
       <form onSubmit={submit} className="space-y-4">
         <p className="notice">
-          Enter a demonstration receiving office and staff. No official pickup
+          Enter the actual receiving office and staff. Confirm pickup
           policy is implied.
         </p>
         <FormField label="Receiving office" name="office" required />
